@@ -128,12 +128,12 @@ is
             raise program_error;
       end case;
 
-      ewok.gpio.register (ID_KERNEL, ID_DEV_UNUSED, TX_pin_config'access, ok);
+      ewok.gpio.register (ID_KERNEL, ID_DEV_UNUSED, TX_pin_config, ok);
       if not ok then
          raise program_error;
       end if;
 
-      ewok.gpio.config (TX_pin_config'access);
+      ewok.gpio.config (TX_pin_config);
 
       case kernel_usart_id is
          when 1 =>

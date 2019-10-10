@@ -57,10 +57,10 @@ is
    procedure register
      (task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id;
-      conf_a      : in  ewok.exported.gpios.t_gpio_config_access;
+      gpio_config : in  ewok.exported.gpios.t_gpio_config;
       success     : out boolean)
    is
-      ref : constant ewok.exported.gpios.t_gpio_ref := conf_a.all.kref;
+      ref : constant ewok.exported.gpios.t_gpio_ref := gpio_config.kref;
    begin
       if gpio_points(ref.port, ref.pin).used then
          pragma DEBUG (debug.log (debug.ERROR, "Registering GPIO: port" &
@@ -71,7 +71,7 @@ is
          gpio_points(ref.port, ref.pin).used       := true;
          gpio_points(ref.port, ref.pin).task_id    := task_id;
          gpio_points(ref.port, ref.pin).device_id  := device_id;
-         gpio_points(ref.port, ref.pin).config     := conf_a;
+         gpio_points(ref.port, ref.pin).config     := gpio_config;
          success := true;
       end if;
    end register;
@@ -80,9 +80,9 @@ is
    procedure release
      (task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id;
-      conf_a      : in  ewok.exported.gpios.t_gpio_config_access)
+      gpio_config : in  ewok.exported.gpios.t_gpio_config)
    is
-      ref : constant ewok.exported.gpios.t_gpio_ref := conf_a.all.kref;
+      ref : constant ewok.exported.gpios.t_gpio_ref := gpio_config.kref;
    begin
       if gpio_points(ref.port, ref.pin).task_id   /= task_id   or
          gpio_points(ref.port, ref.pin).device_id /= device_id
@@ -92,79 +92,79 @@ is
          gpio_points(ref.port, ref.pin).used       := false;
          gpio_points(ref.port, ref.pin).task_id    := ID_UNUSED;
          gpio_points(ref.port, ref.pin).device_id  := ID_DEV_UNUSED;
-         gpio_points(ref.port, ref.pin).config     := NULL;
+         gpio_points(ref.port, ref.pin).config     := (others => <>);
       end if;
    end release;
 
 
    procedure config
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access)
+     (gpio_config : in ewok.exported.gpios.t_gpio_config)
    is
    begin
 
       -- Enable RCC
-      soc.gpio.enable_clock (conf.all.kref.port);
+      soc.gpio.enable_clock (gpio_config.kref.port);
 
-      if conf.all.settings.set_mode then
+      if gpio_config.settings.set_mode then
          soc.gpio.set_mode
-           (conf.all.kref.port,
-            conf.all.kref.pin,
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
             soc.gpio.t_pin_mode'val
-              (t_interface_gpio_mode'pos (conf.all.mode)));
+              (t_interface_gpio_mode'pos (gpio_config.mode)));
       end if;
 
-      if conf.all.settings.set_type then
+      if gpio_config.settings.set_type then
          soc.gpio.set_type
-           (conf.all.kref.port,
-            conf.all.kref.pin,
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
             soc.gpio.t_pin_output_type'val
-               (t_interface_gpio_type'pos (conf.all.otype)));
+               (t_interface_gpio_type'pos (gpio_config.otype)));
       end if;
 
-      if conf.all.settings.set_speed then
+      if gpio_config.settings.set_speed then
          soc.gpio.set_speed
-           (conf.all.kref.port,
-            conf.all.kref.pin,
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
             soc.gpio.t_pin_output_speed'val
-              (t_interface_gpio_speed'pos (conf.all.ospeed)));
+              (t_interface_gpio_speed'pos (gpio_config.ospeed)));
       end if;
 
-      if conf.all.settings.set_pupd then
+      if gpio_config.settings.set_pupd then
          soc.gpio.set_pupd
-           (conf.all.kref.port,
-            conf.all.kref.pin,
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
             soc.gpio.t_pin_pupd'val
-              (t_interface_gpio_pupd'pos (conf.all.pupd)));
+              (t_interface_gpio_pupd'pos (gpio_config.pupd)));
       end if;
 
-      if conf.all.settings.set_bsr_r then
+      if gpio_config.settings.set_bsr_r then
          soc.gpio.set_bsr_r
-           (conf.all.kref.port,
-            conf.all.kref.pin,
-            types.to_bit (conf.all.bsr_r));
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
+            types.to_bit (gpio_config.bsr_r));
       end if;
 
-      if conf.all.settings.set_bsr_s then
+      if gpio_config.settings.set_bsr_s then
          soc.gpio.set_bsr_s
-           (conf.all.kref.port,
-            conf.all.kref.pin,
-            types.to_bit (conf.all.bsr_s));
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
+            types.to_bit (gpio_config.bsr_s));
       end if;
 
       -- FIXME - Writing to LCKR register requires a specific sequence
       --         describe in section 8.4.8 (RM 00090)
-      if conf.all.settings.set_lck then
+      if gpio_config.settings.set_lck then
          soc.gpio.set_lck
-           (conf.all.kref.port,
-            conf.all.kref.pin,
-            soc.gpio.t_pin_lock'val (conf.all.lck));
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
+            soc.gpio.t_pin_lock'val (gpio_config.lck));
       end if;
 
-      if conf.all.settings.set_af then
+      if gpio_config.settings.set_af then
          soc.gpio.set_af
-           (conf.all.kref.port,
-            conf.all.kref.pin,
-            to_pin_alt_func (conf.all.af));
+           (gpio_config.kref.port,
+            gpio_config.kref.pin,
+            to_pin_alt_func (gpio_config.af));
       end if;
 
    end config;
@@ -226,7 +226,7 @@ is
 
    function get_config
      (ref      : in  ewok.exported.gpios.t_gpio_ref)
-      return ewok.exported.gpios.t_gpio_config_access
+      return ewok.exported.gpios.t_gpio_config
    is
    begin
       return gpio_points(ref.port, ref.pin).config;

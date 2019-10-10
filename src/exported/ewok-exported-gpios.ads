@@ -23,7 +23,7 @@
 with soc.gpio;
 
 package ewok.exported.gpios
-   with spark_mode => off
+   with spark_mode => on
 is
 
    type t_gpio_settings is record
@@ -93,22 +93,19 @@ is
 
 
    type t_gpio_config is record
-      settings       : t_gpio_settings;  -- gpio_mask_t
-      kref           : t_gpio_ref;
-      mode           : t_interface_gpio_mode;
-      pupd           : t_interface_gpio_pupd;
-      otype          : t_interface_gpio_type;
-      ospeed         : t_interface_gpio_speed;
-      af             : unsigned_32;
-      bsr_r          : unsigned_32;
-      bsr_s          : unsigned_32;
-      lck            : unsigned_32;
-      exti_trigger   : t_interface_gpio_exti_trigger;
-      exti_lock      : t_interface_gpio_exti_lock;
-      exti_handler   : system_address;
+      settings       : t_gpio_settings          := (others => false);
+      kref           : t_gpio_ref               := (0, soc.gpio.GPIO_PA);
+      mode           : t_interface_gpio_mode    := GPIO_IN;
+      pupd           : t_interface_gpio_pupd    := GPIO_NOPULL;
+      otype          : t_interface_gpio_type    := GPIO_PUSH_PULL;
+      ospeed         : t_interface_gpio_speed   := GPIO_LOW_SPEED;
+      af             : unsigned_32              := 0;
+      bsr_r          : unsigned_32              := 0;
+      bsr_s          : unsigned_32              := 0;
+      lck            : unsigned_32              := 0;
+      exti_trigger   : t_interface_gpio_exti_trigger  := GPIO_EXTI_TRIGGER_NONE;
+      exti_lock      : t_interface_gpio_exti_lock     := GPIO_EXTI_UNLOCKED;
+      exti_handler   : system_address           := 0;
    end record;
-
-   type t_gpio_config_access is access all t_gpio_config;
-
 
 end ewok.exported.gpios;

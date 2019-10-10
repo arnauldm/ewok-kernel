@@ -26,7 +26,7 @@ with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.devices_shared;  use ewok.devices_shared;
 
 package ewok.gpio
-   with spark_mode => off
+   with spark_mode => on
 is
 
    function is_used
@@ -36,16 +36,16 @@ is
    procedure register
      (task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id;
-      conf_a      : in  ewok.exported.gpios.t_gpio_config_access;
+      gpio_config : in  ewok.exported.gpios.t_gpio_config;
       success     : out boolean);
 
    procedure release
      (task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id;
-      conf_a      : in  ewok.exported.gpios.t_gpio_config_access);
+      gpio_config : in  ewok.exported.gpios.t_gpio_config);
 
    procedure config
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access);
+     (gpio_config : in  ewok.exported.gpios.t_gpio_config);
 
    procedure write_pin
      (ref      : in  ewok.exported.gpios.t_gpio_ref;
@@ -72,20 +72,20 @@ is
 
    function get_config
      (ref      : in  ewok.exported.gpios.t_gpio_ref)
-      return ewok.exported.gpios.t_gpio_config_access;
+      return ewok.exported.gpios.t_gpio_config;
 
 private
 
    type t_gpio_state is record
-      used        : boolean := false;
-      task_id     : ewok.tasks_shared.t_task_id;
-      device_id   : ewok.devices_shared.t_device_id;
-      config      : ewok.exported.gpios.t_gpio_config_access;
+      used        : boolean                           := false;
+      task_id     : ewok.tasks_shared.t_task_id       := ID_UNUSED;
+      device_id   : ewok.devices_shared.t_device_id   := ID_DEV_UNUSED;
+      config      : ewok.exported.gpios.t_gpio_config;
    end record;
 
    -- Keep track of used GPIO points
    gpio_points : array (soc.gpio.t_gpio_port_index, soc.gpio.t_gpio_pin_index)
       of t_gpio_state :=
-        (others => (others => (false, ID_UNUSED, ID_DEV_UNUSED, NULL)));
+        (others => (others => <>));
 
 end ewok.gpio;

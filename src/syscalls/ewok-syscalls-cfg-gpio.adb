@@ -143,10 +143,10 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
 
-      ref   : ewok.exported.gpios.t_gpio_ref
-         with address => params(1)'address;
+      ref         : ewok.exported.gpios.t_gpio_ref
+                        with address => params(1)'address;
 
-      cfg   : ewok.exported.gpios.t_gpio_config_access;
+      gpio_config : ewok.exported.gpios.t_gpio_config;
 
    begin
 
@@ -165,11 +165,11 @@ is
          goto ret_denied;
       end if;
 
-      cfg := ewok.gpio.get_config(ref);
+      gpio_config := ewok.gpio.get_config(ref);
 
       -- Does that GPIO has an EXTI line which is lockable ?
-      if cfg.all.exti_trigger = GPIO_EXTI_TRIGGER_NONE or
-         cfg.all.exti_lock    = GPIO_EXTI_UNLOCKED
+      if gpio_config.exti_trigger = GPIO_EXTI_TRIGGER_NONE or
+         gpio_config.exti_lock    = GPIO_EXTI_UNLOCKED
       then
          goto ret_inval;
       end if;

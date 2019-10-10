@@ -26,8 +26,7 @@ with soc.syscfg;
 with soc.nvic;
 with soc.interrupts;
 with ewok.interrupts;
-with ewok.exported.gpios;   use type ewok.exported.gpios.t_gpio_config_access;
-                            use type ewok.exported.gpios.t_interface_gpio_exti_lock;
+with ewok.exported.gpios;  use type ewok.exported.gpios.t_interface_gpio_exti_lock;
 with ewok.gpio;
 with ewok.tasks_shared;
 with ewok.devices_shared;
@@ -114,7 +113,7 @@ is
       interrupt   : in  soc.interrupts.t_interrupt)
    is
       ref         : ewok.exported.gpios.t_gpio_ref;
-      conf        : ewok.exported.gpios.t_gpio_config_access;
+      gpio_config : ewok.exported.gpios.t_gpio_config;
       task_id     : ewok.tasks_shared.t_task_id;
    begin
 
@@ -127,11 +126,8 @@ is
         (ref.pin,   -- input
          ref.port); -- output
 
-      -- Retrieving the GPIO configuration associated to that GPIO point.
-      -- Permit to get the "real" user ISR.
-      conf := ewok.gpio.get_config (ref);
-
-      if conf = NULL then
+      -- Is the GPIO handled by a user task ?
+      if not ewok.gpio.is_used (ref) then
          soc.nvic.clear_pending_irq (soc.nvic.to_irq_number (interrupt));
          pragma DEBUG (debug.log (debug.ERROR, "unable to find GPIO informations for port" &
             t_gpio_port_index'image (ref.port) & ", pin" &
@@ -139,9 +135,13 @@ is
       else
          task_id  := ewok.gpio.get_task_id (ref);
 
+         -- Retrieving the GPIO configuration associated to that GPIO point.
+         -- Permit to get the "real" user ISR.
+         gpio_config := ewok.gpio.get_config (ref);
+
          ewok.isr.postpone_isr
            (interrupt,
-            ewok.interrupts.to_handler_access (conf.all.exti_handler),
+            ewok.interrupts.to_handler_access (gpio_config.exti_handler),
             task_id);
 
          -- if the EXTI line is configured as lockable by the kernel, the
@@ -149,7 +149,7 @@ is
          -- userspace using gpio_unlock_exti(). This permit to support
          -- external devices that generates regular EXTI events which are
          -- not correctly filtered
-         if conf.all.exti_lock = ewok.exported.gpios.GPIO_EXTI_LOCKED then
+         if gpio_config.exti_lock = ewok.exported.gpios.GPIO_EXTI_LOCKED then
             ewok.exti.disable(ref);
          end if;
       end if;

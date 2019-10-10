@@ -277,7 +277,7 @@ is
          ewok.gpio.register
            (task_id,
             dev_id,
-            registered_device(dev_id).udev.gpios(i)'access,
+            registered_device(dev_id).udev.gpios(i),
             success);
          if not success then
             raise program_error;
@@ -292,7 +292,7 @@ is
 
       -- Registering EXTIs
       for i in 1 .. udev.gpio_num loop
-         ewok.exti.register (udev.gpios(i)'access, success);
+         ewok.exti.register (udev.gpios(i), success);
          if not success then
             raise program_error;
          end if;
@@ -333,9 +333,9 @@ is
       for i in 1 .. registered_device(dev_id).udev.gpio_num loop
 
          ewok.gpio.release
-           (task_id, dev_id, registered_device(dev_id).udev.gpios(i)'access);
+           (task_id, dev_id, registered_device(dev_id).udev.gpios(i));
 
-         ewok.exti.release (registered_device(dev_id).udev.gpios(i)'access);
+         ewok.exti.release (registered_device(dev_id).udev.gpios(i));
 
       end loop;
 
@@ -370,7 +370,7 @@ is
 
       -- Configure and enable GPIOs
       for i in 1 .. registered_device(dev_id).udev.gpio_num loop
-         ewok.gpio.config (registered_device(dev_id).udev.gpios(i)'access);
+         ewok.gpio.config (registered_device(dev_id).udev.gpios(i));
          if registered_device(dev_id).udev.gpios(i).exti_trigger /=
                GPIO_EXTI_TRIGGER_NONE
          then

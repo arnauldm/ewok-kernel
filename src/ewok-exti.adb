@@ -88,16 +88,16 @@ is
 
 
    procedure register
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access;
-      success  : out boolean)
+     (gpio_config : in  ewok.exported.gpios.t_gpio_config;
+      success     : out boolean)
    is
       line : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
-           (soc.gpio.t_gpio_pin_index'pos (conf.all.kref.pin));
+           (soc.gpio.t_gpio_pin_index'pos (gpio_config.kref.pin));
    begin
 
       -- Is EXTI setting required?
-      if not conf.all.settings.set_exti then
+      if not gpio_config.settings.set_exti then
          success := true;
          return;
       end if;
@@ -116,7 +116,7 @@ is
       end if;
 
       -- Configuring the triggers
-      case conf.all.exti_trigger is
+      case gpio_config.exti_trigger is
          when GPIO_EXTI_TRIGGER_NONE =>
             success := true;
             return;
@@ -133,7 +133,7 @@ is
       end case;
 
       -- Configuring the SYSCFG register
-      soc.syscfg.set_exti_port (conf.all.kref.pin, conf.all.kref.port);
+      soc.syscfg.set_exti_port (gpio_config.kref.pin, gpio_config.kref.port);
 
       exti_line_registered (line) := true;
       success := true;
@@ -142,14 +142,14 @@ is
 
 
    procedure release
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access)
+     (gpio_config : in  ewok.exported.gpios.t_gpio_config)
    is
       line : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
-           (soc.gpio.t_gpio_pin_index'pos (conf.all.kref.pin));
+           (soc.gpio.t_gpio_pin_index'pos (gpio_config.kref.pin));
    begin
 
-      if not conf.all.settings.set_exti then
+      if not gpio_config.settings.set_exti then
          return;
       end if;
 
@@ -161,7 +161,7 @@ is
          return;
       end if;
 
-      if conf.all.exti_trigger = GPIO_EXTI_TRIGGER_NONE then
+      if gpio_config.exti_trigger = GPIO_EXTI_TRIGGER_NONE then
          return;
       end if;
 

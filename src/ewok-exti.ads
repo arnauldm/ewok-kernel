@@ -56,11 +56,11 @@ is
    -- Brief Register a new EXTI line.
    -- Check that the EXTI line is not already registered.
    procedure register
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access;
-      success  : out boolean);
+     (gpio_config : in  ewok.exported.gpios.t_gpio_config;
+      success     : out boolean);
 
    procedure release
-     (conf     : in  ewok.exported.gpios.t_gpio_config_access);
+     (gpio_config : in  ewok.exported.gpios.t_gpio_config);
 
 end ewok.exti;
 
