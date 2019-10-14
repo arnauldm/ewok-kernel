@@ -78,12 +78,16 @@ is
      (ref : ewok.exported.gpios.t_gpio_ref)
       return boolean
    is
-      line : constant soc.exti.t_exti_line_index :=
+      line     : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
            (soc.gpio.t_gpio_pin_index'pos (ref.pin));
+      enabled  : boolean;
    begin
-      return exti_line_registered (line) or
-             soc.exti.is_enabled (line);
+      if exti_line_registered (line) then
+         return true;
+      end if;
+      soc.exti.is_enabled (line, enabled);
+      return enabled;
    end is_used;
 
 
@@ -91,9 +95,10 @@ is
      (gpio_config : in  ewok.exported.gpios.t_gpio_config;
       success     : out boolean)
    is
-      line : constant soc.exti.t_exti_line_index :=
+      line     : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
            (soc.gpio.t_gpio_pin_index'pos (gpio_config.kref.pin));
+      enabled  : boolean;
    begin
 
       -- Is EXTI setting required?
@@ -110,7 +115,8 @@ is
 
       -- If the line is already set, thus it's already used.
       -- We return in error.
-      if soc.exti.is_enabled (line) then
+      soc.exti.is_enabled (line, enabled);
+      if enabled then
          success := false;
          return;
       end if;
@@ -144,9 +150,10 @@ is
    procedure release
      (gpio_config : in  ewok.exported.gpios.t_gpio_config)
    is
-      line : constant soc.exti.t_exti_line_index :=
+      line     : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
            (soc.gpio.t_gpio_pin_index'pos (gpio_config.kref.pin));
+      enabled  : boolean;
    begin
 
       if not gpio_config.settings.set_exti then
@@ -157,7 +164,8 @@ is
          return;
       end if;
 
-      if not soc.exti.is_enabled (line) then
+      soc.exti.is_enabled (line, enabled);
+      if not enabled then
          return;
       end if;
 

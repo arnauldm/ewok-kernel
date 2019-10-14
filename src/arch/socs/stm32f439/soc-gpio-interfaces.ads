@@ -23,7 +23,7 @@
 with types.c;
 
 package soc.gpio.interfaces
-   with spark_mode => off
+   with spark_mode => on
 is
 
    function configure

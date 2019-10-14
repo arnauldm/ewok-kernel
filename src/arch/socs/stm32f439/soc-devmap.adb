@@ -1,7 +1,7 @@
 with soc.dma; use soc.dma;
 
 package body soc.devmap
-   with spark_mode => off
+   with spark_mode => on
 is
 
    function find_periph

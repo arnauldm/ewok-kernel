@@ -25,20 +25,7 @@ with soc.layout;
 
 package soc.gpio
    with
-      spark_mode     => on,
-      abstract_state => -- Registers
-       ((gpio_a   with external),
-        (gpio_b   with external),
-        (gpio_c   with external),
-        (gpio_d   with external),
-        (gpio_e   with external),
-        (gpio_f   with external),
-        (gpio_g   with external),
-        (gpio_h   with external),
-        (gpio_i   with external)),
-      initializes    => -- Assumed registers are initialized
-        (gpio_a, gpio_b, gpio_c, gpio_d,
-         gpio_e, gpio_f, gpio_h, gpio_i)
+      spark_mode => on
 is
 
    type t_gpio_pin_index is range 0 .. 15
@@ -254,8 +241,7 @@ is
       pin      : in  t_gpio_pin_index;
       mode     : in  t_pin_mode)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
+         global => null;
 
    -- set the GPIO type (push-pull, open-drain)
    procedure set_type
@@ -263,9 +249,7 @@ is
       pin      : in  t_gpio_pin_index;
       otype    : in  t_pin_output_type)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
-
+         global => null;
 
    -- set the GPIO speed, from low to very high speed
    procedure set_speed
@@ -273,9 +257,7 @@ is
       pin      : in  t_gpio_pin_index;
       ospeed   : in  t_pin_output_speed)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
-
+         global => null;
 
    -- set the gpio pull mode (no pull, pull-up or pull-down mode)
    procedure set_pupd
@@ -283,9 +265,7 @@ is
       pin      : in  t_gpio_pin_index;
       pupd     : in  t_pin_pupd)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
-
+         global => null;
 
    -- set the GPIO behavior on the output data register bit write action
    -- (reset action)
@@ -294,9 +274,7 @@ is
       pin      : in  t_gpio_pin_index;
       bsr_r    : in  types.bit)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
-
+         global => null;
 
    -- set the GPIO behavior on the output data register bit write action
    -- (set action)
@@ -305,9 +283,7 @@ is
       pin      : in  t_gpio_pin_index;
       bsr_s    : in  types.bit)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
-
+         global => null;
 
    -- lock the GPIO configuration
    procedure set_lck
@@ -315,8 +291,7 @@ is
       pin      : in  t_gpio_pin_index;
       lck      : in  t_pin_lock)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
+         global => null;
 
    -- set the GPIO alternate function (see the SoC datasheet to get the
    -- list of available alternate functions)
@@ -325,8 +300,7 @@ is
       pin      : in  t_gpio_pin_index;
       af       : in  t_pin_alt_func)
       with
-         global => (output => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i));
+         global => null;
 
    -- set the GPIO output value on GPIO in output mode
    procedure write_pin
@@ -334,14 +308,7 @@ is
       pin      : in  t_gpio_pin_index;
       value    : in  bit)
       with
-         global => (in_out => (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                               gpio_f, gpio_g, gpio_h, gpio_i)),
-         -- Each GPIO port depend on itself and the input value to set
-         depends => (gpio_a =>+ value, gpio_b =>+ value, gpio_c =>+ value,
-                     gpio_d =>+ value, gpio_e =>+ value, gpio_f =>+ value,
-                     gpio_g =>+ value, gpio_h =>+ value, gpio_i =>+ value,
-                     null   =>  (port, pin));
-
+         global => null;
 
    -- set the GPIO input value on GPIO in input mode
    procedure read_pin
@@ -349,15 +316,7 @@ is
       pin      : in  t_gpio_pin_index;
       value    : out bit)
       with
-         global => (in_out=> (gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-                              gpio_f, gpio_g, gpio_h, gpio_i)),
-         depends => (gpio_a =>+ null, gpio_b =>+ null, gpio_c =>+ null,
-                     gpio_d =>+ null, gpio_e =>+ null, gpio_f =>+ null,
-                     gpio_g =>+ null, gpio_h =>+ null, gpio_i =>+ null,
-                     value  => (gpio_a, gpio_b, gpio_c, gpio_d,
-                                gpio_e, gpio_f, gpio_h, gpio_i),
-                     null   =>  (port, pin));
-
+         global => null;
 
 private
 
@@ -394,47 +353,38 @@ private
 
    GPIOA : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOA_BASE),
-           part_of => gpio_a;
+           address => system'to_address (soc.layout.GPIOA_BASE);
 
    GPIOB : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOB_BASE),
-           part_of => gpio_b;
+           address => system'to_address (soc.layout.GPIOB_BASE);
 
    GPIOC : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOC_BASE),
-           part_of => gpio_c;
+           address => system'to_address (soc.layout.GPIOC_BASE);
 
    GPIOD : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOD_BASE),
-           part_of => gpio_d;
+           address => system'to_address (soc.layout.GPIOD_BASE);
 
    GPIOE : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOE_BASE),
-           part_of => gpio_e;
+           address => system'to_address (soc.layout.GPIOE_BASE);
 
    GPIOF : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOF_BASE),
-           part_of => gpio_f;
+           address => system'to_address (soc.layout.GPIOF_BASE);
 
    GPIOG : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOG_BASE),
-           part_of => gpio_g;
+           address => system'to_address (soc.layout.GPIOG_BASE);
 
    GPIOH : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOH_BASE),
-           part_of => gpio_h;
+           address => system'to_address (soc.layout.GPIOH_BASE);
 
    GPIOI : aliased t_GPIO_port
       with import, volatile,
-           address => system'to_address (soc.layout.GPIOI_BASE),
-           part_of => gpio_i;
+           address => system'to_address (soc.layout.GPIOI_BASE);
 
 end soc.gpio;

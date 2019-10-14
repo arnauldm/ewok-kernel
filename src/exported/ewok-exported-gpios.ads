@@ -91,7 +91,6 @@ is
       (GPIO_EXTI_UNLOCKED => 0,
        GPIO_EXTI_LOCKED   => 1);
 
-
    type t_gpio_config is record
       settings       : t_gpio_settings          := (others => false);
       kref           : t_gpio_ref               := (0, soc.gpio.GPIO_PA);
@@ -100,9 +99,9 @@ is
       otype          : t_interface_gpio_type    := GPIO_PUSH_PULL;
       ospeed         : t_interface_gpio_speed   := GPIO_LOW_SPEED;
       af             : unsigned_32              := 0;
-      bsr_r          : unsigned_32              := 0;
-      bsr_s          : unsigned_32              := 0;
-      lck            : unsigned_32              := 0;
+      bsr_r          : unsigned_32 range 0 .. 1 := 0;
+      bsr_s          : unsigned_32 range 0 .. 1 := 0;
+      lck            : unsigned_32 range 0 .. 1 := 0;
       exti_trigger   : t_interface_gpio_exti_trigger  := GPIO_EXTI_TRIGGER_NONE;
       exti_lock      : t_interface_gpio_exti_lock     := GPIO_EXTI_UNLOCKED;
       exti_handler   : system_address           := 0;

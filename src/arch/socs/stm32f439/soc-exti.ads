@@ -39,9 +39,9 @@ is
    -- Initialize EXTI by enabling SYSCFG.APB2 clock
    procedure init;
 
-   function is_line_pending
-     (line : t_exti_line_index)
-      return boolean;
+   procedure is_line_pending
+     (line     : in  t_exti_line_index;
+      pending  : out boolean);
 
    procedure clear_pending
      (line : in t_exti_line_index);
@@ -53,16 +53,16 @@ is
      (line : in t_exti_line_index)
       with inline;
 
-   function is_enabled
-     (line : in t_exti_line_index)
-      return boolean;
+   procedure is_enabled
+     (line     : in t_exti_line_index;
+      enabled  : out boolean);
 
 
    type t_mask is  (MASKED, NOT_MASKED) with size => 1;
    for  t_mask use (MASKED => 0, NOT_MASKED => 1);
 
    type t_masks is array (t_exti_line_index) of t_mask
-      with volatile_components, pack, size => 23;
+      with pack, size => 23;
 
    ----------------------------------------
    -- Interrupt mask register (EXTI_IMR) --

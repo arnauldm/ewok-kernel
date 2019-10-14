@@ -100,50 +100,50 @@ typedef enum {
  * GPIO inputs mode
  */
 typedef enum {
-	GPIO_NOPULL = 0,
-		   /**< GPIO pin in No Pull mode */
-	GPIO_PULLUP = 1,
-		   /**< GPIO pin in Pull UP mode */
-	GPIO_PULLDOWN = 2,
-		   /**< GPIO pin in Pull Down mode */
+    GPIO_NOPULL = 0,
+           /**< GPIO pin in No Pull mode */
+    GPIO_PULLUP = 1,
+           /**< GPIO pin in Pull UP mode */
+    GPIO_PULLDOWN = 2,
+           /**< GPIO pin in Pull Down mode */
 } gpio_pupd_t;
 
 /**
  * GPIO direction
  */
 typedef enum {
-	GPIO_PIN_INPUT_MODE = 0,
-			   /**< GPIO pin in input mode */
-	GPIO_PIN_OUTPUT_MODE = 1,
-			   /**< GPIO pin in output mode */
-	GPIO_PIN_ALTERNATE_MODE = 2,
-			   /**< GPIO pin in anternative mode */
-	GPIO_PIN_ANALOG_MODE = 3
-			   /**< GPIO pin in analogic mode */
+    GPIO_PIN_INPUT_MODE = 0,
+               /**< GPIO pin in input mode */
+    GPIO_PIN_OUTPUT_MODE = 1,
+               /**< GPIO pin in output mode */
+    GPIO_PIN_ALTERNATE_MODE = 2,
+               /**< GPIO pin in anternative mode */
+    GPIO_PIN_ANALOG_MODE = 3
+               /**< GPIO pin in analogic mode */
 } gpio_mode_t;
 
 /**
  * GPIO speed, depending on the value measured (timer, sensor...)
  */
 typedef enum {
-	GPIO_PIN_LOW_SPEED = 0,
-			   /**< GPIO pin in low speed mode */
-	GPIO_PIN_MEDIUM_SPEED = 1,
-			   /**< GPIO pin in medium speed mode */
-	GPIO_PIN_HIGH_SPEED = 2,
-			   /**< GPIO pin in high speed mode */
-	GPIO_PIN_VERY_HIGH_SPEED = 3,
-			   /**< GPIO pin in very high speed mode */
+    GPIO_PIN_LOW_SPEED = 0,
+               /**< GPIO pin in low speed mode */
+    GPIO_PIN_MEDIUM_SPEED = 1,
+               /**< GPIO pin in medium speed mode */
+    GPIO_PIN_HIGH_SPEED = 2,
+               /**< GPIO pin in high speed mode */
+    GPIO_PIN_VERY_HIGH_SPEED = 3,
+               /**< GPIO pin in very high speed mode */
 } gpio_speed_t;
 
 /**
  * GPIO ouputs mode
  */
 typedef enum {
-	GPIO_PIN_OTYPER_PP = 0,
-			  /**< GPIO pin in Push-Pull mode */
-	GPIO_PIN_OTYPER_OD = 1,
-			  /**< GPIO pin in Open-Drain mode */
+    GPIO_PIN_OTYPER_PP = 0,
+              /**< GPIO pin in Push-Pull mode */
+    GPIO_PIN_OTYPER_OD = 1,
+              /**< GPIO pin in Open-Drain mode */
 } gpio_type_t;
 
 
@@ -222,19 +222,19 @@ typedef struct {
      *   directly. GPIO port use at registration are named using 'A', 'B', ...
      *   up to the last GPIO port available (e.g. 'I' for STM32F4xx)
      */
-	gpioref_t           kref;
+    gpioref_t           kref;
 
-	gpio_mode_t         mode;
-	gpio_pupd_t         pupd;
-	gpio_type_t         type;
-	gpio_speed_t        speed;
-	uint32_t            afr;
-	uint32_t            bsr_r;
-	uint32_t            bsr_s;
-	uint32_t            lck;
+    gpio_mode_t         mode;
+    gpio_pupd_t         pupd;
+    gpio_type_t         type;
+    gpio_speed_t        speed;
+    uint32_t            afr;
+    uint32_t            bsr_r;
+    uint32_t            bsr_s;
+    uint32_t            lck;
     gpio_exti_trigger_t exti_trigger;
     gpio_exti_lock_t    exti_lock;
-	user_handler_t      exti_handler;
+    user_handler_t      exti_handler;
 
 } dev_gpio_info_t;
 

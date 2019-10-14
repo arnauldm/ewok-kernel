@@ -47,7 +47,7 @@ with soc.interrupts; use soc.interrupts;
 with soc.dma;
 
 package soc.devmap
-   with spark_mode => off
+   with spark_mode => on
 is
 
    type t_interrupt_range is range 1 .. 4;
@@ -66,8 +66,6 @@ is
       interrupt_list   : t_interrupt_list;
       ro               : boolean;
    end record;
-
-   type t_periph_info_access is access all t_periph_info;
 
    -- STM32F4 devices map
    -- This structure define all available devices and associated informations.

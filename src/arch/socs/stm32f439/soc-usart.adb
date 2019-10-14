@@ -20,61 +20,36 @@
 --
 --
 
-with soc.rcc;
-with soc.rcc.default;
-
 package body soc.usart
-   with spark_mode => off
+   with spark_mode => on
 is
 
-   procedure set_baudrate
-     (usart    : in  t_USART_peripheral_access;
-      baudrate : in  unsigned_32)
-   is
-      APB_clock   : unsigned_32;
-      mantissa    : unsigned_32;
-      fraction    : unsigned_32;
-   begin
-      -- Configuring the baud rate is a tricky part. See RM0090 p. 982-983
-      -- for further informations
-      if usart = USART1'access or
-         usart = USART6'access
-      then
-         APB_clock   := soc.rcc.default.CLOCK_APB2;
-      else
-         APB_clock   := soc.rcc.default.CLOCK_APB1;
-      end if;
-
-      mantissa    := APB_clock / (16 * baudrate);
-      fraction    := ((APB_clock * 25) / (4 * baudrate)) - mantissa * 100;
-      fraction    := (fraction * 16) / 100;
-
-      usart.all.BRR.DIV_MANTISSA   := bits_12 (mantissa);
-      usart.all.BRR.DIV_FRACTION   := bits_4  (fraction);
-   end set_baudrate;
-
-
    procedure transmit
-     (usart : in  t_USART_peripheral_access;
-      data  : in  t_USART_DR)
+     (usart : in out t_USART_peripheral;
+      data  : in     bits_9)
    is
+      exit_cond : boolean;
    begin
       loop
-         exit when usart.all.SR.TXE;
+         exit_cond := usart.SR.TXE;
+         exit when exit_cond;
       end loop;
-      usart.all.DR := data;
+      usart.DR := t_USART_DR (data);
    end transmit;
 
 
    procedure receive
-     (usart : in  t_USART_peripheral_access;
-      data  : out t_USART_DR)
+     (usart : in out t_USART_peripheral;
+      data  : out    bits_9)
    is
+      pragma unmodified (usart);
+      exit_cond : boolean;
    begin
       loop
-         exit when usart.all.SR.RXNE;
+         exit_cond := usart.SR.RXNE;
+         exit when exit_cond;
       end loop;
-      data := usart.all.DR;
+      data := bits_9 (usart.DR);
    end receive;
 
 

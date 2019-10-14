@@ -48,7 +48,7 @@ package body ewok.debug
    with spark_mode => off
 is
 
-   kernel_usart_id   : unsigned_8;
+   kernel_usart_id   : soc.usart.interfaces.t_usart_id;
    TX_pin_config     : aliased ewok.exported.gpios.t_gpio_config;
 
    USART1_TX_pin_config : constant ewok.exported.gpios.t_gpio_config :=
@@ -115,15 +115,17 @@ is
       ok             : boolean;
    begin
 
-      kernel_usart_id := usart;
 
-      case kernel_usart_id is
+      case usart is
          when 1 =>
-            TX_pin_config  := USART1_TX_pin_config;
+            kernel_usart_id   := soc.usart.interfaces.ID_USART1;
+            TX_pin_config     := USART1_TX_pin_config;
          when 4 =>
-            TX_pin_config  := USART4_TX_pin_config;
+            kernel_usart_id   := soc.usart.interfaces.ID_UART4;
+            TX_pin_config     := USART4_TX_pin_config;
          when 6 =>
-            TX_pin_config  := USART6_TX_pin_config;
+            kernel_usart_id   := soc.usart.interfaces.ID_USART6;
+            TX_pin_config     := USART6_TX_pin_config;
          when others =>
             raise program_error;
       end case;
@@ -136,14 +138,9 @@ is
       ewok.gpio.config (TX_pin_config);
 
       case kernel_usart_id is
-         when 1 =>
-            soc.rcc.enable_clock (soc.devmap.USART1);
-         when 4 =>
-            soc.rcc.enable_clock (soc.devmap.UART4);
-         when 6 =>
-            soc.rcc.enable_clock (soc.devmap.USART6);
-         when others =>
-            raise program_error;
+         when soc.usart.interfaces.ID_USART1 => soc.rcc.enable_clock (soc.devmap.USART1);
+         when soc.usart.interfaces.ID_UART4  => soc.rcc.enable_clock (soc.devmap.UART4);
+         when soc.usart.interfaces.ID_USART6 => soc.rcc.enable_clock (soc.devmap.USART6);
       end case;
 
       soc.usart.interfaces.configure
@@ -153,7 +150,7 @@ is
       end if;
 
       log (INFO,
-         "EwoK: USART" & unsigned_8'image (kernel_usart_id) & " initialized");
+         "EwoK: USART" & unsigned_8'image (usart) & " initialized");
       newline;
 
    end init;

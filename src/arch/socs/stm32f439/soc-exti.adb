@@ -25,7 +25,7 @@ with soc.rcc;
 
 
 package body soc.exti
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure init
@@ -39,47 +39,66 @@ is
    end init;
 
 
-   function is_line_pending
-     (line : t_exti_line_index)
-      return boolean
+   procedure is_line_pending
+     (line     : in  t_exti_line_index;
+      pending  : out boolean)
    is
       request : t_request;
    begin
       request := EXTI.PR.line(line);
-      return (request = PENDING_REQUEST);
+      if request = PENDING_REQUEST then
+         pending := true;
+      else
+         pending := false;
+      end if;
    end is_line_pending;
 
 
    procedure clear_pending
      (line : in t_exti_line_index)
    is
+      pending_exti : t_requests;
    begin
-      EXTI.PR.line(line) := CLEAR_REQUEST;
+      pending_exti         := EXTI.PR.line;
+      pending_exti(line)   := CLEAR_REQUEST;
+      EXTI.PR.line         := pending_exti;
    end clear_pending;
 
 
    procedure enable
      (line : in t_exti_line_index)
    is
+      intr_mask : t_masks;
    begin
-      EXTI.IMR.line(line) := NOT_MASKED; -- interrupt is unmasked
+      intr_mask         := EXTI.IMR.line;
+      intr_mask(line)   := NOT_MASKED; -- interrupt is unmasked
+      EXTI.IMR.line     := intr_mask;
    end enable;
+
 
    procedure disable
      (line : in t_exti_line_index)
    is
+      intr_mask : t_masks;
    begin
-      EXTI.IMR.line(line) := MASKED; -- interrupt is masked
+      intr_mask         := EXTI.IMR.line;
+      intr_mask(line)   := MASKED; -- interrupt is masked
+      EXTI.IMR.line     := intr_mask;
    end disable;
 
 
-   function is_enabled (line : in t_exti_line_index)
-      return boolean
+   procedure is_enabled
+     (line     : in t_exti_line_index;
+      enabled  : out boolean)
    is
       mask : t_mask;
    begin
       mask := EXTI.IMR.line(line);
-      return mask = NOT_MASKED;
+      if mask = NOT_MASKED then
+         enabled := true;
+      else
+         enabled := false;
+      end if;
    end;
 
 end soc.exti;

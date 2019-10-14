@@ -161,7 +161,8 @@ is
      (frame_a : in ewok.t_stack_frame_access)
    is
       pragma unreferenced (frame_a);
-      intr        : soc.interrupts.t_interrupt;
+      intr  : soc.interrupts.t_interrupt;
+      ok    : boolean;
    begin
 
       intr := soc.interrupts.get_interrupt;
@@ -185,7 +186,8 @@ is
          when soc.interrupts.INT_EXTI9_5     =>
 
             for line in t_exti_line_index range 5 .. 9 loop
-               if soc.exti.is_line_pending (line) then
+               soc.exti.is_line_pending (line, ok);
+               if ok then
                   handle_line (line, intr);
                end if;
             end loop;
@@ -193,7 +195,8 @@ is
          when soc.interrupts.INT_EXTI15_10   =>
 
             for line in t_exti_line_index range 10 .. 15 loop
-               if soc.exti.is_line_pending (line) then
+               soc.exti.is_line_pending (line, ok);
+               if ok then
                   handle_line (line, intr);
                end if;
             end loop;

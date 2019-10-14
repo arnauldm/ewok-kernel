@@ -22,7 +22,7 @@
 
 
 package soc.rcc.default
-   with spark_mode => off
+   with spark_mode => on
 is
 
    --

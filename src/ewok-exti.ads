@@ -24,7 +24,7 @@ with soc.exti;
 with ewok.exported.gpios;
 
 package ewok.exti
-   with spark_mode => off
+   with spark_mode => on
 is
 
    exti_line_registered : array (soc.exti.t_exti_line_index) of boolean

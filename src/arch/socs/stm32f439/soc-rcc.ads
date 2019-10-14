@@ -24,7 +24,7 @@ with system;
 with soc.devmap;
 
 package soc.rcc
-   with spark_mode => off
+   with spark_mode => on
 is
 
    -----------------------------------------

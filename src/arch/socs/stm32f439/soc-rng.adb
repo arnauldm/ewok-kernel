@@ -24,25 +24,30 @@ with soc.devmap;
 with soc.rcc;
 
 package body soc.rng
-   with spark_mode => off
+   with spark_mode => on
 is
 
    last_random : unsigned_32;
 
-
    procedure init
      (success : out boolean)
    is
+      data_ready  : boolean;
+      seed_error  : boolean;
+      clock_error : boolean;
    begin
 
       soc.rcc.enable_clock (soc.devmap.RNG);
       RNG.CR.RNGEN := true;
 
       loop
-         exit when RNG.SR.DRDY;
+         data_ready := RNG.SR.DRDY;
+         exit when data_ready;
       end loop;
 
-      if RNG.SR.SECS or RNG.SR.CECS then
+      seed_error  := RNG.SR.SECS;
+      clock_error := RNG.SR.CECS;
+      if seed_error or clock_error then
          success := false;
       else
          success := true;
@@ -56,15 +61,19 @@ is
      (rand     : out unsigned_32;
       success  : out boolean)
    is
+      data_ready  : boolean;
+      seed_error  : boolean;
    begin
 
       loop
-         exit when RNG.SR.DRDY;
+         data_ready := RNG.SR.DRDY;
+         exit when data_ready;
       end loop;
 
       rand := RNG.DR.RNDATA;
 
-      if rand = last_random or RNG.SR.SECS then
+      seed_error  := RNG.SR.SECS;
+      if rand = last_random or seed_error then
          success := false;
       else
          success := true;

@@ -70,10 +70,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       mode     : in  t_pin_mode)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.MODER.pin(pin)   := mode;
@@ -84,10 +80,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       otype    : in  t_pin_output_type)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.OTYPER.pin(pin)   := otype;
@@ -98,10 +90,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       ospeed   : in  t_pin_output_speed)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.OSPEEDR.pin(pin)  := ospeed;
@@ -112,10 +100,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       pupd     : in  t_pin_pupd)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.PUPDR.pin(pin)  := pupd;
@@ -126,10 +110,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       bsr_r    : in  types.bit)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.BSRR.BR(pin) := bsr_r;
@@ -140,10 +120,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       bsr_s    : in  types.bit)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.BSRR.BS(pin) := bsr_s;
@@ -154,10 +130,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       lck      : in  t_pin_lock)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.LCKR.pin(pin)  := lck;
@@ -168,10 +140,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       af       : in  t_pin_alt_func)
-      with
-         refined_global => (output => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       if pin < 8 then
@@ -186,10 +154,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       value    : in  bit)
-      with
-         refined_global => (in_out => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       GPIOx(port).all.ODR.pin (pin) := value;
@@ -200,10 +164,6 @@ is
      (port     : in  t_gpio_port_index;
       pin      : in  t_gpio_pin_index;
       value    : out bit)
-      with
-         refined_global => (in_out => (gpio_a, gpio_b, gpio_c,
-                                       gpio_d, gpio_e, gpio_f,
-                                       gpio_g, gpio_h, gpio_i))
    is
    begin
       value := GPIOx(port).all.IDR.pin (pin);

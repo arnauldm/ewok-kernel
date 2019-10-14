@@ -27,7 +27,7 @@ with soc.flash;
 with soc.rcc.default;
 
 package body soc.rcc
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure reset
@@ -56,6 +56,10 @@ is
 
    procedure init
    is
+      hse_clock_ready      : boolean;
+      hsi_clock_ready      : boolean;
+      pll_clock_ready      : boolean;
+      clock_switch_status  : bits_2;
    begin
 
       -- Power interface clock enable
@@ -70,13 +74,15 @@ is
       if default.enable_hse then
          RCC.CR.HSEON   := true;
          loop
-            exit when RCC.CR.HSERDY;
+            hse_clock_ready := RCC.CR.HSERDY;
+            exit when hse_clock_ready;
          end loop;
 
       else -- Enable HSI
          RCC.CR.HSION   := true;
          loop
-            exit when RCC.CR.HSIRDY;
+            hsi_clock_ready := RCC.CR.HSIRDY;
+            exit when hsi_clock_ready;
          end loop;
       end if;
 
@@ -94,7 +100,8 @@ is
          -- Enable the main PLL
          RCC.CR.PLLON   := true;
          loop
-            exit when RCC.CR.PLLRDY;
+            pll_clock_ready := RCC.CR.PLLRDY;
+            exit when pll_clock_ready;
          end loop;
       end if;
 
@@ -113,7 +120,8 @@ is
       if default.enable_pll then
          RCC.CFGR.SW := 2#10#; -- PLL selected as system clock
          loop
-            exit when RCC.CFGR.SWS = 2#10#;
+            clock_switch_status := RCC.CFGR.SWS;
+            exit when clock_switch_status = 2#10#;
          end loop;
       end if;
 

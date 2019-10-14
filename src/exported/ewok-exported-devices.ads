@@ -32,7 +32,6 @@ is
    MAX_GPIOS         : constant := 16;
 
    subtype t_device_name is types.c.c_string (1 .. 16);
-   type t_device_name_access is access all t_device_name;
 
    type t_interrupt_config_array is
       array (unsigned_8 range <>) of

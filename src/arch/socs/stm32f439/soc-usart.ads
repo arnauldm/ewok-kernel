@@ -23,7 +23,7 @@
 with system;
 
 package soc.usart
-   with spark_mode => off
+   with spark_mode => on
 is
 
    --------------------------------
@@ -227,7 +227,7 @@ is
    -- USART peripheral --
    ----------------------
 
-   type t_USART_peripheral is record
+   type t_USART_peripheral is limited record
       SR    : t_USART_SR;
       DR    : t_USART_DR;
       BRR   : t_USART_BRR;
@@ -248,37 +248,31 @@ is
       GTPR  at 16#18# range 0 .. 31;
    end record;
 
-   type t_USART_peripheral_access is access all t_USART_peripheral;
-
-   USART1   : aliased t_USART_peripheral
+   USART1   : t_USART_peripheral
       with
          import,
          volatile,
          address => system'to_address(16#4001_1000#);
 
-   USART6   : aliased t_USART_peripheral
+   USART6   : t_USART_peripheral
       with
          import,
          volatile,
          address => system'to_address(16#4001_1400#);
 
-   UART4   : aliased t_USART_peripheral
+   UART4   : t_USART_peripheral
       with
          import,
          volatile,
          address => system'to_address(16#4000_4C00#);
 
 
-   procedure set_baudrate
-     (usart    : in  t_USART_peripheral_access;
-      baudrate : in  unsigned_32);
-
    procedure transmit
-     (usart : in  t_USART_peripheral_access;
-      data  : in  t_USART_DR);
+     (usart : in out t_USART_peripheral;
+      data  : in     bits_9);
 
    procedure receive
-     (usart : in  t_USART_peripheral_access;
-      data  : out t_USART_DR);
+     (usart : in out t_USART_peripheral;
+      data  : out    bits_9);
 
 end soc.usart;
