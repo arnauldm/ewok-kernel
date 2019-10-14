@@ -179,7 +179,6 @@ is
       mode        : in  ewok.tasks_shared.t_task_mode)
    is
       ok       : boolean;
-      udev     : ewok.devices.t_checked_user_device_access;
       dev_id   : ewok.devices_shared.t_device_id;
    begin
 
@@ -192,8 +191,8 @@ is
       for i in TSK.tasks_list(caller_id).devices'range loop
          dev_id := TSK.tasks_list(caller_id).devices(i).device_id;
          if dev_id /= ID_DEV_UNUSED then
-            udev := ewok.devices.get_user_device (dev_id);
-            if udev.all.map_mode = DEV_MAP_AUTO then
+            if ewok.devices.get_device_map_mode (dev_id) = DEV_MAP_AUTO
+            then
                -- FIXME - Create new syscalls for enabling/disabling devices?
                ewok.devices.enable_device (dev_id, ok);
                if not ok then

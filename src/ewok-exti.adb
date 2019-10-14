@@ -28,7 +28,7 @@ with ewok.exported.gpios;   use ewok.exported.gpios;
 with ewok.exti.handler;
 
 package body ewok.exti
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure init
@@ -74,9 +74,9 @@ is
    end disable;
 
 
-   function is_used
-     (ref : ewok.exported.gpios.t_gpio_ref)
-      return boolean
+   procedure is_used
+     (ref   : in  ewok.exported.gpios.t_gpio_ref;
+      used  : out boolean)
    is
       line     : constant soc.exti.t_exti_line_index :=
          soc.exti.t_exti_line_index'val
@@ -84,10 +84,11 @@ is
       enabled  : boolean;
    begin
       if exti_line_registered (line) then
-         return true;
+         used := true;
+         return;
       end if;
       soc.exti.is_enabled (line, enabled);
-      return enabled;
+      used := enabled;
    end is_used;
 
 
@@ -99,6 +100,7 @@ is
          soc.exti.t_exti_line_index'val
            (soc.gpio.t_gpio_pin_index'pos (gpio_config.kref.pin));
       enabled  : boolean;
+      triggers : soc.exti.t_triggers;
    begin
 
       -- Is EXTI setting required?
@@ -128,14 +130,27 @@ is
             return;
 
          when GPIO_EXTI_TRIGGER_RISE =>
-            soc.exti.EXTI.RTSR.line(line) := TRIGGER_ENABLED;
+            --soc.exti.EXTI.RTSR.line(line) := TRIGGER_ENABLED;
+            triggers                := soc.exti.EXTI.RTSR.line;
+            triggers(line)          := TRIGGER_ENABLED;
+            soc.exti.EXTI.RTSR.line := triggers;
 
          when GPIO_EXTI_TRIGGER_FALL =>
-            soc.exti.EXTI.FTSR.line(line) := TRIGGER_ENABLED;
+            --soc.exti.EXTI.FTSR.line(line) := TRIGGER_ENABLED;
+            triggers                := soc.exti.EXTI.FTSR.line;
+            triggers(line)          := TRIGGER_ENABLED;
+            soc.exti.EXTI.FTSR.line := triggers;
 
          when GPIO_EXTI_TRIGGER_BOTH =>
-            soc.exti.EXTI.RTSR.line(line) := TRIGGER_ENABLED;
-            soc.exti.EXTI.FTSR.line(line) := TRIGGER_ENABLED;
+            --soc.exti.EXTI.RTSR.line(line) := TRIGGER_ENABLED;
+            triggers                := soc.exti.EXTI.RTSR.line;
+            triggers(line)          := TRIGGER_ENABLED;
+            soc.exti.EXTI.RTSR.line := triggers;
+
+            --soc.exti.EXTI.FTSR.line(line) := TRIGGER_ENABLED;
+            triggers                := soc.exti.EXTI.FTSR.line;
+            triggers(line)          := TRIGGER_ENABLED;
+            soc.exti.EXTI.FTSR.line := triggers;
       end case;
 
       -- Configuring the SYSCFG register

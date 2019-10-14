@@ -25,5 +25,6 @@
 package default_handlers
    with spark_mode => on
 is
-   procedure dummy;
+   procedure dummy
+      with global => null;
 end default_handlers;

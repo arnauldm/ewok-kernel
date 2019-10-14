@@ -45,7 +45,6 @@ is
       dev_descriptor : unsigned_8
          with address => params(1)'address;
       dev_id      : ewok.devices_shared.t_registered_device_id;
-      dev         : ewok.devices.t_checked_user_device_access;
       ok          : boolean;
    begin
 
@@ -101,9 +100,9 @@ is
       end if;
 
       -- Verifying that the device may be voluntary mapped by the task
-      dev      := ewok.devices.get_user_device (dev_id);
-
-      if dev.map_mode /= ewok.exported.devices.DEV_MAP_VOLUNTARY then
+      if ewok.devices.get_device_map_mode (dev_id)
+            /= ewok.exported.devices.DEV_MAP_VOLUNTARY
+      then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): not a DEV_MAP_VOLUNTARY device"));
@@ -169,7 +168,6 @@ is
       dev_descriptor : unsigned_8
          with address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
-      dev            : ewok.devices.t_checked_user_device_access;
       ok             : boolean;
    begin
 
@@ -225,9 +223,9 @@ is
       end if;
 
       -- Verifying that the device may be voluntary unmapped by the task
-      dev      := ewok.devices.get_user_device (dev_id);
-
-      if dev.map_mode /= ewok.exported.devices.DEV_MAP_VOLUNTARY then
+      if ewok.devices.get_device_map_mode (dev_id)
+            /= ewok.exported.devices.DEV_MAP_VOLUNTARY
+      then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): not a DEV_MAP_VOLUNTARY device"));

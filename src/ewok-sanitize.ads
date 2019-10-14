@@ -21,6 +21,7 @@
 --
 
 
+with ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.exported.dma;
 
@@ -35,14 +36,16 @@ is
      (ptr      : system_address;
       size     : unsigned_32;
       task_id  : ewok.tasks_shared.t_task_id)
-      return boolean;
+      return boolean
+      with
+         global => (input => ewok.tasks.tasks_list);
 
    function is_word_in_data_slot
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id;
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if ptr > system_address'last - 3 then
                      is_word_in_data_slot'result = false);
 
@@ -50,21 +53,23 @@ is
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if ptr > system_address'last - 3 then
                      is_word_in_txt_slot'result = false);
 
    function is_word_in_allocated_device
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id)
-      return boolean;
+      return boolean
+      with
+         global => (input => ewok.tasks.tasks_list);
 
    function is_word_in_any_slot
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id;
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if ptr > system_address'last - 3 then
                      is_word_in_any_slot'result = false);
 
@@ -74,7 +79,7 @@ is
       task_id  : ewok.tasks_shared.t_task_id;
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if size > 0 and ptr > system_address'last - (size - 1) then
                      is_range_in_data_slot'result = false);
 
@@ -83,7 +88,7 @@ is
       size     : unsigned_32;
       task_id  : ewok.tasks_shared.t_task_id) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if size > 0 and ptr > system_address'last - (size - 1) then
                      is_range_in_txt_slot'result = false);
 
@@ -93,7 +98,7 @@ is
       task_id  : ewok.tasks_shared.t_task_id;
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if size > 0 and ptr > system_address'last - (size - 1) then
                      is_range_in_any_slot'result = false);
 
@@ -103,7 +108,7 @@ is
       dma_access  : ewok.exported.dma.t_dma_shm_access;
       task_id     : ewok.tasks_shared.t_task_id) return boolean
       with
-         global => null,
+         global => (input => ewok.tasks.tasks_list),
          post   => (if size > 0 and ptr > system_address'last - (size - 1) then
                      is_range_in_dma_shm'result = false);
 

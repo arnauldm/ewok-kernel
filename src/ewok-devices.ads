@@ -40,7 +40,6 @@ is
       DEV_STATE_ENABLED);
 
    type t_checked_user_device is new ewok.exported.devices.t_user_device;
-   type t_checked_user_device_access is access all t_checked_user_device;
 
    type t_device is record
       udev        : aliased t_checked_user_device;
@@ -61,10 +60,6 @@ is
    function get_task_from_id(dev_id : t_registered_device_id)
       return t_task_id;
 
-   function get_user_device (dev_id : t_registered_device_id)
-      return t_checked_user_device_access
-      with inline_always;
-
    function get_device_size (dev_id : t_registered_device_id)
       return unsigned_32;
 
@@ -76,6 +71,9 @@ is
 
    function get_device_subregions_mask (dev_id : t_registered_device_id)
       return unsigned_8;
+
+   function get_device_map_mode (dev_id : t_registered_device_id)
+      return ewok.exported.devices.t_dev_map_mode;
 
    function get_interrupt_config_from_interrupt
      (interrupt : soc.interrupts.t_interrupt)

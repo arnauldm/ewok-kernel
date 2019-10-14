@@ -51,14 +51,6 @@ is
    end get_task_from_id;
 
 
-   function get_user_device (dev_id : t_registered_device_id)
-      return t_checked_user_device_access
-   is
-   begin
-      return registered_device(dev_id).udev'access;
-   end get_user_device;
-
-
    function get_device_size (dev_id : t_registered_device_id)
       return unsigned_32
    is
@@ -105,6 +97,14 @@ is
    end get_device_subregions_mask;
 
 
+   function get_device_map_mode (dev_id : t_registered_device_id)
+      return ewok.exported.devices.t_dev_map_mode
+   is
+   begin
+      return registered_device(dev_id).udev.map_mode;
+   end get_device_map_mode;
+
+
    function get_interrupt_config_from_interrupt
      (interrupt : soc.interrupts.t_interrupt)
       return ewok.exported.interrupts.t_interrupt_config_access
@@ -128,6 +128,7 @@ is
       end loop;
       return NULL;
    end get_interrupt_config_from_interrupt;
+
 
    ------------------------
    -- Device registering --
@@ -170,6 +171,7 @@ is
       len      : constant natural := types.c.len (udev.all.name);
       name     : string (1 .. len);
       found    : boolean;
+      used     : boolean;
    begin
 
       -- Convert C name to Ada string type for further log messages
@@ -214,12 +216,13 @@ is
 
       -- Are the related EXTIs already used ?
       for i in 1 .. udev.gpio_num loop
-         if boolean (udev.gpios(i).settings.set_exti) and then
-            ewok.exti.is_used (udev.gpios(i).kref)
-         then
-            pragma DEBUG (debug.log (debug.ERROR, "EXTIs already used: " & name));
-            success := false;
-            return;
+         if boolean (udev.gpios(i).settings.set_exti) then -- The task want to use the EXTI...
+            ewok.exti.is_used (udev.gpios(i).kref, used);
+            if used then -- ...but it's already used!
+               pragma DEBUG (debug.log (debug.ERROR, "EXTIs already used: " & name));
+               success := false;
+               return;
+            end if;
          end if;
       end loop;
 

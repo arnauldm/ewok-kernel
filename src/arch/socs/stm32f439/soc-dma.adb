@@ -26,7 +26,7 @@ with soc.devmap;
 
 
 package body soc.dma
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure enable_clocks
@@ -77,7 +77,9 @@ is
          when INT_DMA2_STREAM5 => dma_id := ID_DMA2; stream := 5; success := true;
          when INT_DMA2_STREAM6 => dma_id := ID_DMA2; stream := 6; success := true;
          when INT_DMA2_STREAM7 => dma_id := ID_DMA2; stream := 7; success := true;
-         when others => success := false;
+         when others =>
+            dma_id := ID_DMA1; stream := 0; -- Dummy values, needed by gnatprove
+            success := false;
       end case;
    end get_dma_stream_from_interrupt;
 

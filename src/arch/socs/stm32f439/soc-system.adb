@@ -25,7 +25,7 @@ with m4.cpu.instructions;
 with m4.scb;
 
 package body soc.system
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure init (vtor_addr : in  system_address)

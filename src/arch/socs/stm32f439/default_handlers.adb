@@ -22,7 +22,7 @@
 
 
 package body default_handlers
-   with spark_mode => off
+   with spark_mode => on
 is
    procedure dummy is
    begin

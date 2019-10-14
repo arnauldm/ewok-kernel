@@ -49,9 +49,9 @@ is
      (ref : in  ewok.exported.gpios.t_gpio_ref);
 
    -- Return true if EXTI line is already registered.
-   function is_used
-     (ref : ewok.exported.gpios.t_gpio_ref)
-      return boolean;
+   procedure is_used
+     (ref   : in  ewok.exported.gpios.t_gpio_ref;
+      used  : out boolean);
 
    -- Brief Register a new EXTI line.
    -- Check that the EXTI line is not already registered.
