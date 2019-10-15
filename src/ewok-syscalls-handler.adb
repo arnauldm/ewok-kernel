@@ -46,8 +46,6 @@ package body ewok.syscalls.handler
    with spark_mode => off
 is
 
-   type t_task_access is access all ewok.tasks.t_task;
-
    function svc_handler
      (frame_a : t_stack_frame_access)
       return t_stack_frame_access
@@ -55,20 +53,20 @@ is
       svc            : t_svc;
       svc_params_a   : t_parameters_access;
       current_id     : constant t_task_id       := ewok.sched.current_task_id;
-      current_a      : constant t_task_access   := ewok.tasks.tasks_list(current_id)'access;
+      current_task   : t_task renames ewok.tasks.tasks_list(current_id);
    begin
 
       --
       -- We must save the frame pointer because synchronous syscall don't refer
       -- to the parameters on the stack indexed by 'frame_a' but to
-      -- 'current_a' (they access 'frame_a' via 'current_a.all.ctx.frame_a'
-      -- or 'current_a.all.isr_ctx.frame_a')
+      -- 'current_a' (they access 'frame_a' via 'current_task.ctx.frame_a'
+      -- or 'current_task.isr_ctx.frame_a')
       --
 
-      if current_a.all.mode = TASK_MODE_MAINTHREAD then
-         current_a.all.ctx.frame_a := frame_a;
+      if current_task.mode = TASK_MODE_MAINTHREAD then
+         current_task.ctx.frame_a := frame_a;
       else
-         current_a.all.isr_ctx.frame_a := frame_a;
+         current_task.isr_ctx.frame_a := frame_a;
       end if;
 
       --
@@ -90,7 +88,7 @@ is
                ewok.tasks.set_state
                  (current_id, TASK_MODE_MAINTHREAD, TASK_STATE_FAULT);
                set_return_value
-                 (current_id, current_a.all.mode, SYS_E_DENIED);
+                 (current_id, current_task.mode, SYS_E_DENIED);
                return frame_a;
             end if;
             svc := svc_type;
@@ -110,151 +108,151 @@ is
       case svc is
 
          when SVC_EXIT           =>
-            ewok.syscalls.exiting.svc_exit (current_id, current_a.all.mode);
+            ewok.syscalls.exiting.svc_exit (current_id, current_task.mode);
             return ewok.sched.do_schedule (frame_a);
 
          when SVC_YIELD          =>
-            ewok.syscalls.yield.svc_yield (current_id, current_a.all.mode);
+            ewok.syscalls.yield.svc_yield (current_id, current_task.mode);
             return frame_a;
 
          when SVC_GET_TIME       =>
             ewok.syscalls.gettick.svc_gettick
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_RESET          =>
-            ewok.syscalls.reset.svc_reset (current_id, current_a.all.mode);
+            ewok.syscalls.reset.svc_reset (current_id, current_task.mode);
             return frame_a;
 
          when SVC_SLEEP          =>
             ewok.syscalls.sleep.svc_sleep
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_GET_RANDOM     =>
             ewok.syscalls.rng.svc_get_random
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_LOG            =>
 
             ewok.syscalls.log.svc_log
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_REGISTER_DEVICE   =>
             ewok.syscalls.init.svc_register_device
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_REGISTER_DMA      =>
 #if CONFIG_KERNEL_DMA_ENABLE
             ewok.syscalls.dma.svc_register_dma
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
 #else
-            set_return_value (current_id, current_a.all.mode, SYS_E_DENIED);
+            set_return_value (current_id, current_task.mode, SYS_E_DENIED);
 #end if;
             return frame_a;
 
          when SVC_REGISTER_DMA_SHM  =>
 #if CONFIG_KERNEL_DMA_ENABLE
             ewok.syscalls.dma.svc_register_dma_shm
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
 #else
-            set_return_value (current_id, current_a.all.mode, SYS_E_DENIED);
+            set_return_value (current_id, current_task.mode, SYS_E_DENIED);
 #end if;
             return frame_a;
 
          when SVC_GET_TASKID =>
             ewok.syscalls.init.svc_get_taskid
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_INIT_DONE      =>
-            ewok.syscalls.init.svc_init_done (current_id, current_a.all.mode);
+            ewok.syscalls.init.svc_init_done (current_id, current_task.mode);
             return frame_a;
 
          when SVC_IPC_RECV_SYNC  =>
             ewok.syscalls.ipc.svc_ipc_do_recv
-              (current_id, svc_params_a.all, true, current_a.all.mode);
+              (current_id, svc_params_a.all, true, current_task.mode);
             return ewok.sched.do_schedule (frame_a);
 
          when SVC_IPC_SEND_SYNC  =>
             ewok.syscalls.ipc.svc_ipc_do_send
-              (current_id, svc_params_a.all, true, current_a.all.mode);
+              (current_id, svc_params_a.all, true, current_task.mode);
             return ewok.sched.do_schedule (frame_a);
 
          when SVC_IPC_RECV_ASYNC =>
             ewok.syscalls.ipc.svc_ipc_do_recv
-              (current_id, svc_params_a.all, false, current_a.all.mode);
+              (current_id, svc_params_a.all, false, current_task.mode);
             return ewok.sched.do_schedule (frame_a);
 
          when SVC_IPC_SEND_ASYNC =>
             ewok.syscalls.ipc.svc_ipc_do_send
-              (current_id, svc_params_a.all, false, current_a.all.mode);
+              (current_id, svc_params_a.all, false, current_task.mode);
             return ewok.sched.do_schedule (frame_a);
 
          when SVC_GPIO_SET       =>
-            ewok.syscalls.cfg.gpio.svc_gpio_set (current_id, svc_params_a.all, current_a.all.mode);
+            ewok.syscalls.cfg.gpio.svc_gpio_set (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_GPIO_GET       =>
-            ewok.syscalls.cfg.gpio.svc_gpio_get (current_id, svc_params_a.all, current_a.all.mode);
+            ewok.syscalls.cfg.gpio.svc_gpio_get (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_GPIO_UNLOCK_EXTI =>
             ewok.syscalls.cfg.gpio.svc_gpio_unlock_exti
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_DMA_RECONF  =>
 #if CONFIG_KERNEL_DMA_ENABLE
             ewok.syscalls.dma.svc_dma_reconf
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
 #else
-            set_return_value (current_id, current_a.all.mode, SYS_E_DENIED);
+            set_return_value (current_id, current_task.mode, SYS_E_DENIED);
 #end if;
             return frame_a;
 
          when SVC_DMA_RELOAD  =>
 #if CONFIG_KERNEL_DMA_ENABLE
             ewok.syscalls.dma.svc_dma_reload
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
 #else
-            set_return_value (current_id, current_a.all.mode, SYS_E_DENIED);
+            set_return_value (current_id, current_task.mode, SYS_E_DENIED);
 #end if;
             return frame_a;
 
          when SVC_DMA_DISABLE =>
 #if CONFIG_KERNEL_DMA_ENABLE
             ewok.syscalls.dma.svc_dma_disable
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
 #else
-            set_return_value (current_id, current_a.all.mode, SYS_E_DENIED);
+            set_return_value (current_id, current_task.mode, SYS_E_DENIED);
 #end if;
             return frame_a;
 
          when SVC_DEV_MAP     =>
             ewok.syscalls.cfg.dev.svc_dev_map
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_DEV_UNMAP   =>
             ewok.syscalls.cfg.dev.svc_dev_unmap
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_DEV_RELEASE =>
             ewok.syscalls.cfg.dev.svc_dev_release
-              (current_id, svc_params_a.all, current_a.all.mode);
+              (current_id, svc_params_a.all, current_task.mode);
             return frame_a;
 
          when SVC_LOCK_ENTER  =>
-            ewok.syscalls.lock.svc_lock_enter (current_id, current_a.all.mode);
+            ewok.syscalls.lock.svc_lock_enter (current_id, current_task.mode);
             return frame_a;
 
          when SVC_LOCK_EXIT   =>
-            ewok.syscalls.lock.svc_lock_exit (current_id, current_a.all.mode);
+            ewok.syscalls.lock.svc_lock_exit (current_id, current_task.mode);
             return frame_a;
 
       end case;

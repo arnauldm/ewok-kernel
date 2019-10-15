@@ -56,6 +56,4 @@ is
       gpios          : t_gpio_config_array (1 .. MAX_GPIOS);
    end record;
 
-   type t_user_device_access is access all t_user_device;
-
 end ewok.exported.devices;

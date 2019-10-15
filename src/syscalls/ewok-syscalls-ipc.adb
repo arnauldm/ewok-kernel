@@ -348,8 +348,6 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
 
-      type t_task_access is access all TSK.t_task;
-      receiver_a  : t_task_access;
       ep_id       : ewok.ipc.t_extended_endpoint_id;
       ok          : boolean;
 
@@ -419,8 +417,6 @@ is
          goto ret_inval;
       end if;
 
-      receiver_a := TSK.tasks_list(id_receiver)'access;
-
       -- Defensive programming test: should *never* be true
       if TSK.get_state (id_receiver, TASK_MODE_MAINTHREAD)
             = TASK_STATE_EMPTY
@@ -479,7 +475,7 @@ is
       then
 
          -- Defensive programming test: should *never* happen
-         if receiver_a.all.ipc_endpoint_id(caller_id) /= ID_ENDPOINT_UNUSED then
+         if TSK.tasks_list(id_receiver).ipc_endpoint_id(caller_id) /= ID_ENDPOINT_UNUSED then
             raise program_error;
          end if;
 
@@ -503,7 +499,7 @@ is
       -- Wake up idle receivers
       if ewok.sleep.is_sleeping (id_receiver) then
          ewok.sleep.try_waking_up (id_receiver);
-      elsif receiver_a.all.state = TASK_STATE_IDLE then
+      elsif TSK.tasks_list(id_receiver).state = TASK_STATE_IDLE then
          TSK.set_state
            (id_receiver, TASK_MODE_MAINTHREAD, TASK_STATE_RUNNABLE);
       end if;
@@ -561,18 +557,28 @@ is
          TSK.set_state
            (id_receiver, TASK_MODE_MAINTHREAD, TASK_STATE_FORCED);
 
-         ewok.memory.map_code_and_data (id_receiver);
-         receiver_a.all.ctx.frame_a.all.PC :=
-            receiver_a.all.ctx.frame_a.all.PC - 2;
-         ewok.memory.map_code_and_data (caller_id);
+         declare
+            -- /!\ 'id_receiver' is a value on caller's stack. After
+            -- having mapped receiver's memory space, it won't be
+            -- accessible, causing a hard fault.
+            -- The 'id' variable below is a copy (and thus on kernel's stack
+            -- or in registers)
+            id : constant ewok.tasks_shared.t_task_id := id_receiver;
+         begin
+            ewok.memory.map_code_and_data (id);
+            TSK.tasks_list(id).ctx.frame_a.all.PC :=
+               TSK.tasks_list(id).ctx.frame_a.all.PC - 2;
+            ewok.memory.map_code_and_data (caller_id);
+         end;
+
       end if;
 
       if blocking then
          TSK.set_state
            (caller_id, TASK_MODE_MAINTHREAD, TASK_STATE_IPC_WAIT_ACK);
 #if CONFIG_SCHED_SUPPORT_FIPC
-         if receiver_a.all.state = TASK_STATE_RUNNABLE or
-            receiver_a.all.state = TASK_STATE_IDLE
+         if TSK.tasks_list(id_receiver).state = TASK_STATE_RUNNABLE or
+            TSK.tasks_list(id_receiver).state = TASK_STATE_IDLE
          then
             TSK.set_state
               (id_receiver, TASK_MODE_MAINTHREAD, TASK_STATE_FORCED);

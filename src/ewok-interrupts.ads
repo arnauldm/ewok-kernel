@@ -49,8 +49,6 @@ is
       end case;
    end record;
 
-   type t_interrupt_cell_access is access all t_interrupt_cell;
-
    interrupt_table : array (soc.interrupts.t_interrupt) of aliased t_interrupt_cell;
 
 
