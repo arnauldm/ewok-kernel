@@ -584,8 +584,8 @@ is
          return;
       end if;
 
-      status := soc.dma.interfaces.get_interrupt_status
-        (soc_dma_id, soc_stream_id);
+      soc.dma.interfaces.get_interrupt_status
+        (soc_dma_id, soc_stream_id, status);
 
       soc.dma.interfaces.clear_all_interrupts (soc_dma_id, soc_stream_id);
 

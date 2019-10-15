@@ -60,8 +60,6 @@ is
       periph_burst_size : soc.dma.interfaces.t_burst_size;
    end record;
 
-   type t_dma_user_config_access is access t_dma_user_config;
-
    type t_dma_shm_access is (SHM_ACCESS_READ, SHM_ACCESS_WRITE);
 
    -- The caller (accessed_id) grant access to another task (granted_id)

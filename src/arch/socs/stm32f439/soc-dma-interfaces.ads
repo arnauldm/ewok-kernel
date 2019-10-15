@@ -101,21 +101,40 @@ is
      (dma_id  : in  soc.dma.t_dma_periph_index;
       stream  : in  soc.dma.t_stream_index);
 
-   function get_interrupt_status
+   procedure get_interrupt_status
      (dma_id  : in  soc.dma.t_dma_periph_index;
-      stream  : in  soc.dma.t_stream_index)
-      return t_dma_stream_int_status;
+      stream  : in  soc.dma.t_stream_index;
+      status  : out t_dma_stream_int_status);
 
    procedure configure_stream
      (dma_id      : in  soc.dma.t_dma_periph_index;
       stream      : in  soc.dma.t_stream_index;
-      user_config : in  t_dma_config);
+      user_config : in  t_dma_config)
+      with
+         pre => user_config.transfer_dir /= MEMORY_TO_MEMORY;
+
+   procedure do_configure_stream
+     (controller  : in out t_dma_periph;
+      stream      : in     soc.dma.t_stream_index;
+      user_config : in     t_dma_config)
+      with
+         pre => user_config.transfer_dir /= MEMORY_TO_MEMORY;
 
    procedure reconfigure_stream
      (dma_id      : in  soc.dma.t_dma_periph_index;
       stream      : in  soc.dma.t_stream_index;
       user_config : in  t_dma_config;
-      to_configure: in  t_config_mask);
+      to_configure: in  t_config_mask)
+      with
+         pre => user_config.transfer_dir /= MEMORY_TO_MEMORY;
+
+   procedure do_reconfigure_stream
+     (controller  : in out t_dma_periph;
+      stream      : in     soc.dma.t_stream_index;
+      user_config : in     t_dma_config;
+      to_configure: in     t_config_mask)
+      with
+         pre => user_config.transfer_dir /= MEMORY_TO_MEMORY;
 
    procedure reset_stream
      (dma_id      : in  soc.dma.t_dma_periph_index;

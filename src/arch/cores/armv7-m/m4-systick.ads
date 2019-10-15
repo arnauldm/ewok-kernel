@@ -156,9 +156,9 @@ is
    procedure increment
       with inline_always;
 
-private
+--private
 
-   ticks : t_tick
+   ticks : t_tick := 0
       with volatile, async_writers;
 
 end m4.systick;

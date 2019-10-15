@@ -24,20 +24,21 @@ with ewok.tasks;        use ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 
 package body ewok.sleep
-   with spark_mode => off
+   with spark_mode => on
 is
 
    package TSK renames ewok.tasks;
 
 
-   procedure sleeping
+   procedure do_sleeping
      (task_id     : in  t_real_task_id;
       ms          : in  milliseconds;
       mode        : in  t_sleep_mode)
    is
+      current : constant m4.systick.t_tick := m4.systick.get_ticks;
    begin
-      awakening_time(task_id) :=
-         m4.systick.get_ticks + m4.systick.to_ticks (ms);
+
+      awakening_time(task_id) := current + m4.systick.to_ticks (ms);
 
       if mode = SLEEP_MODE_INTERRUPTIBLE then
          TSK.set_state (task_id, TASK_MODE_MAINTHREAD, TASK_STATE_SLEEPING);
@@ -45,7 +46,7 @@ is
          TSK.set_state (task_id, TASK_MODE_MAINTHREAD, TASK_STATE_SLEEPING_DEEP);
       end if;
 
-   end sleeping;
+   end do_sleeping;
 
 
    procedure check_is_awoke
@@ -66,31 +67,33 @@ is
    procedure try_waking_up
      (task_id : in  t_real_task_id)
    is
+      current : constant m4.systick.t_tick := m4.systick.get_ticks;
    begin
       if TSK.tasks_list(task_id).state = TASK_STATE_SLEEPING or else
-         awakening_time(task_id) < m4.systick.get_ticks
+         awakening_time(task_id) < current
       then
          TSK.set_state (task_id, TASK_MODE_MAINTHREAD, TASK_STATE_RUNNABLE);
       end if;
    end try_waking_up;
 
 
-   function is_sleeping
-     (task_id : in  t_real_task_id)
-      return boolean
+   procedure is_sleeping
+     (task_id : in  t_real_task_id;
+      state   : out t_sleeping_state)
    is
+      current : constant m4.systick.t_tick := m4.systick.get_ticks;
    begin
       if TSK.tasks_list(task_id).state = TASK_STATE_SLEEPING or
          TSK.tasks_list(task_id).state = TASK_STATE_SLEEPING_DEEP
       then
-         if awakening_time(task_id) > m4.systick.get_ticks then
-            return true;
+         if awakening_time(task_id) > current then
+            state := SLEEPING;
          else
             TSK.set_state (task_id, TASK_MODE_MAINTHREAD, TASK_STATE_RUNNABLE);
-            return false;
+            state := AWAKE;
          end if;
       else
-         return false;
+         state := AWAKE;
       end if;
    end is_sleeping;
 

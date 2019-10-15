@@ -113,11 +113,12 @@ is
    end soc_is_dma_irq;
 
 
-   function get_interrupt_status
-     (controller  : t_dma_periph;
-      stream      : t_stream_index) return t_dma_stream_int_status
+   procedure get_interrupt_status
+     (controller  : in out t_dma_periph;
+      stream      : in     t_stream_index;
+      status      : out    t_dma_stream_int_status)
    is
-      status : t_dma_stream_int_status;
+      pragma unmodified (controller);
    begin
       case stream is
          when 0 => status := controller.LISR.stream_0;
@@ -129,7 +130,6 @@ is
          when 6 => status := controller.HISR.stream_6;
          when 7 => status := controller.HISR.stream_7;
       end case;
-      return status;
    end get_interrupt_status;
 
 

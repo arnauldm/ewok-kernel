@@ -25,7 +25,7 @@ with system.machine_code;
 
 with ewok.tasks;           use ewok.tasks;
 with ewok.devices_shared;  use ewok.devices_shared;
-with ewok.sleep;
+with ewok.sleep;           use type ewok.sleep.t_sleeping_state;
 with ewok.syscalls.handler;
 with ewok.memory;
 with ewok.interrupts;
@@ -67,6 +67,7 @@ is
       return t_task_id
    is
       elected  : t_task_id;
+      state    : ewok.sleep.t_sleeping_state;
    begin
 
       --
@@ -116,10 +117,10 @@ is
             TSK.tasks_list(id).isr_ctx.sched_policy   := ISR_STANDARD;
             ewok.tasks.set_mode (id, TASK_MODE_MAINTHREAD);
 
-
             -- When a task has just finished its ISR  its main thread might
             -- become runnable
-            if ewok.sleep.is_sleeping (id) then
+            ewok.sleep.is_sleeping (id, state);
+            if state = ewok.sleep.SLEEPING then
                ewok.sleep.try_waking_up (id);
             elsif TSK.tasks_list(id).state = TASK_STATE_IDLE then
                ewok.tasks.set_state
@@ -156,12 +157,12 @@ is
 
 #if CONFIG_SCHED_RAND
       declare
-         random   : aliased unsigned_32;
+         random   : unsigned_32;
          id       : t_task_id;
          ok       : boolean;
          pragma unreferenced (ok);
       begin
-         ewok.rng.random (random'access, ok);
+         ewok.rng.random (random, ok);
          id := t_task_id'val ((applications.list'first)'pos +
                             (random mod applications.list'length));
          for i in 1 .. applications.list'length loop

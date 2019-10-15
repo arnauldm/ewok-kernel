@@ -342,7 +342,7 @@ is
    type t_streams_registers is array (t_stream_index) of t_stream_registers
       with pack;
 
-   type t_dma_periph is record
+   type t_dma_periph is limited record
       LISR     : t_DMA_LISR;  -- Interrupt status register (0 .. 3)
       HISR     : t_DMA_HISR;  -- Interrupt status register (4 .. 7)
       LIFCR    : t_DMA_LIFCR; -- Interrupt clear register (0 .. 3)
@@ -392,10 +392,10 @@ is
       (intr : soc.interrupts.t_interrupt)
       return boolean;
 
-   function get_interrupt_status
-     (controller  : t_dma_periph;
-      stream      : t_stream_index) return t_dma_stream_int_status
-   with volatile_function;
+   procedure get_interrupt_status
+     (controller  : in out t_dma_periph;
+      stream      : in     t_stream_index;
+      status      : out    t_dma_stream_int_status);
 
    procedure set_IFCR
      (controller  : in out t_dma_periph;

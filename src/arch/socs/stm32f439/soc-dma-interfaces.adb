@@ -21,11 +21,8 @@
 --
 
 package body soc.dma.interfaces
-   with spark_mode => off
+   with spark_mode => on
 is
-
-   type t_dma_periph_access is access all t_dma_periph;
-
 
    procedure enable_stream
      (dma_id  : in  soc.dma.t_dma_periph_index;
@@ -84,17 +81,17 @@ is
    end clear_all_interrupts;
 
 
-   function get_interrupt_status
+   procedure get_interrupt_status
      (dma_id  : in  soc.dma.t_dma_periph_index;
-      stream  : in  soc.dma.t_stream_index)
-      return t_dma_stream_int_status
+      stream  : in  soc.dma.t_stream_index;
+      status  : out t_dma_stream_int_status)
    is
    begin
       case dma_id is
          when ID_DMA1 =>
-            return soc.dma.get_interrupt_status (soc.dma.DMA1, stream);
+            soc.dma.get_interrupt_status (soc.dma.DMA1, stream, status);
          when ID_DMA2 =>
-            return soc.dma.get_interrupt_status (soc.dma.DMA2, stream);
+            soc.dma.get_interrupt_status (soc.dma.DMA2, stream, status);
       end case;
    end get_interrupt_status;
 
@@ -104,14 +101,21 @@ is
       stream      : in  soc.dma.t_stream_index;
       user_config : in  t_dma_config)
    is
-      controller  : t_dma_periph_access;
+   begin
+      case dma_id is
+         when ID_DMA1 => do_configure_stream (soc.dma.DMA1, stream, user_config);
+         when ID_DMA2 => do_configure_stream (soc.dma.DMA2, stream, user_config);
+      end case;
+   end configure_stream;
+
+
+   procedure do_configure_stream
+     (controller  : in out t_dma_periph;
+      stream      : in     soc.dma.t_stream_index;
+      user_config : in     t_dma_config)
+   is
       size        : unsigned_16; -- Number of data items to transfer
    begin
-
-      case dma_id is
-         when ID_DMA1 => controller := soc.dma.DMA1'access;
-         when ID_DMA2 => controller := soc.dma.DMA2'access;
-      end case;
 
       controller.streams(stream).CR.EN := false;
 
@@ -233,23 +237,35 @@ is
             controller.streams(stream).CR.TRANSFER_COMPLETE := true;
       end case;
 
-   end configure_stream;
+   end do_configure_stream;
 
 
    procedure reconfigure_stream
      (dma_id      : in  soc.dma.t_dma_periph_index;
+      stream      : in     soc.dma.t_stream_index;
+      user_config : in     t_dma_config;
+      to_configure: in     t_config_mask)
+   is
+   begin
+      case dma_id is
+         when ID_DMA1 =>
+            do_reconfigure_stream
+              (soc.dma.DMA1, stream, user_config, to_configure);
+         when ID_DMA2 =>
+            do_reconfigure_stream
+              (soc.dma.DMA2, stream, user_config, to_configure);
+      end case;
+   end reconfigure_stream;
+
+
+   procedure do_reconfigure_stream
+     (controller  : in out t_dma_periph;
       stream      : in  soc.dma.t_stream_index;
       user_config : in  t_dma_config;
       to_configure: in  t_config_mask)
    is
-      controller  : t_dma_periph_access;
       size        : unsigned_16; -- Number of data items to transfer
    begin
-
-      case dma_id is
-         when ID_DMA1 => controller := soc.dma.DMA1'access;
-         when ID_DMA2 => controller := soc.dma.DMA2'access;
-      end case;
 
       controller.streams(stream).CR.EN := false;
 
@@ -338,7 +354,7 @@ is
          end case;
       end if;
 
-   end reconfigure_stream;
+   end do_reconfigure_stream;
 
 
    procedure reset_stream

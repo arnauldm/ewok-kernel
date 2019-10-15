@@ -28,7 +28,7 @@ with ewok.tasks;        use ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.sanitize;
 with ewok.perm;
-with ewok.sleep;
+with ewok.sleep;        use type ewok.sleep.t_sleeping_state;
 with ewok.debug;
 with ewok.memory;
 with types.c;           use types.c;
@@ -349,6 +349,7 @@ is
    is
 
       ep_id       : ewok.ipc.t_extended_endpoint_id;
+      state       : ewok.sleep.t_sleeping_state;
       ok          : boolean;
 
       ----------------
@@ -497,7 +498,8 @@ is
       -----------------------
 
       -- Wake up idle receivers
-      if ewok.sleep.is_sleeping (id_receiver) then
+      ewok.sleep.is_sleeping (id_receiver, state);
+      if state = ewok.sleep.SLEEPING then
          ewok.sleep.try_waking_up (id_receiver);
       elsif TSK.tasks_list(id_receiver).state = TASK_STATE_IDLE then
          TSK.set_state

@@ -54,7 +54,7 @@ is
          goto ret_busy;
       end if;
 
-      ewok.sleep.sleeping (caller_id, milliseconds (sleep_time), sleep_mode);
+      ewok.sleep.do_sleeping (caller_id, milliseconds (sleep_time), sleep_mode);
 
       -- Note: state set by ewok.sleep.sleeping procedure
       set_return_value (caller_id, mode, SYS_E_DONE);

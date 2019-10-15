@@ -70,9 +70,9 @@ is
          exit when data_ready;
       end loop;
 
-      rand := RNG.DR.RNDATA;
-
+      rand        := RNG.DR.RNDATA;
       seed_error  := RNG.SR.SECS;
+
       if rand = last_random or seed_error then
          success := false;
       else

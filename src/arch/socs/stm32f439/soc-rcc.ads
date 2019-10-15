@@ -109,6 +109,17 @@ is
    -- RCC clock configuration register (RCC_CFGR) --
    -------------------------------------------------
 
+   type t_system_clock_switch is
+     (CLOCK_HSI,
+      CLOCK_HSE,
+      CLOCK_PLL)
+      with size => 2;
+
+   for t_system_clock_switch use
+     (CLOCK_HSI   => 2#00#,
+      CLOCK_HSE   => 2#01#,
+      CLOCK_PLL   => 2#10#);
+
    type t_HPRE is
      (HPRE_NODIV,
       HPRE_DIV2,
@@ -148,8 +159,8 @@ is
       PPRE_DIV16 => 2#111#);
 
    type t_RCC_CFGR is record
-      SW             : bits_2;   -- System clock switch
-      SWS            : bits_2;   -- System clock switch status
+      SW             : t_system_clock_switch;
+      SWS            : t_system_clock_switch;   -- Status
       HPRE           : t_HPRE;   -- AHB prescaler
       reserved_8_9   : bits_2;
       PPRE1          : t_PPRE;   -- APB Low speed prescaler (APB1)

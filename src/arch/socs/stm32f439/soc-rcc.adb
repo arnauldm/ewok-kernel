@@ -59,7 +59,7 @@ is
       hse_clock_ready      : boolean;
       hsi_clock_ready      : boolean;
       pll_clock_ready      : boolean;
-      clock_switch_status  : bits_2;
+      clock_switch_status  : t_system_clock_switch;
    begin
 
       -- Power interface clock enable
@@ -118,10 +118,10 @@ is
       RCC.CFGR.PPRE2 := default.APB2_DIV; -- APB2 high speed prescaler
 
       if default.enable_pll then
-         RCC.CFGR.SW := 2#10#; -- PLL selected as system clock
+         RCC.CFGR.SW := CLOCK_PLL; -- PLL selected as system clock
          loop
             clock_switch_status := RCC.CFGR.SWS;
-            exit when clock_switch_status = 2#10#;
+            exit when clock_switch_status = CLOCK_PLL;
          end loop;
       end if;
 
