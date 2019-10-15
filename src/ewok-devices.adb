@@ -105,9 +105,10 @@ is
    end get_device_map_mode;
 
 
-   function get_interrupt_config_from_interrupt
-     (interrupt : soc.interrupts.t_interrupt)
-      return ewok.exported.interrupts.t_interrupt_config_access
+   procedure get_interrupt_config
+     (interrupt   : in  soc.interrupts.t_interrupt;
+      config      : out ewok.exported.interrupts.t_interrupt_config;
+      success     : out boolean)
    is
       dev_id : t_device_id;
    begin
@@ -115,7 +116,8 @@ is
       -- Retrieving the dev_id from the interrupt
       dev_id := ewok.interrupts.get_device_from_interrupt (interrupt);
       if dev_id = ID_DEV_UNUSED then
-         return NULL;
+         success := false;
+         return;
       end if;
 
       -- Looking at each interrupts configured for this device
@@ -123,11 +125,14 @@ is
       for i in 1 .. registered_device(dev_id).udev.interrupt_num loop
          if registered_device(dev_id).udev.interrupts(i).interrupt = interrupt
          then
-            return registered_device(dev_id).udev.interrupts(i)'access;
+            config   := registered_device(dev_id).udev.interrupts(i);
+            success  := true;
+            return;
          end if;
       end loop;
-      return NULL;
-   end get_interrupt_config_from_interrupt;
+
+      success := false;
+   end get_interrupt_config;
 
 
    ------------------------
@@ -163,27 +168,27 @@ is
 
    procedure register_device
      (task_id  : in  t_task_id;
-      udev     : in  ewok.exported.devices.t_user_device_access;
+      udev     : in  ewok.exported.devices.t_user_device;
       dev_id   : out t_device_id;
       success  : out boolean)
    is
       periph_id: soc.devmap.t_periph_id;
-      len      : constant natural := types.c.len (udev.all.name);
+      len      : constant natural := types.c.len (udev.name);
       name     : string (1 .. len);
       found    : boolean;
       used     : boolean;
    begin
 
       -- Convert C name to Ada string type for further log messages
-      types.c.to_ada (name, udev.all.name);
+      types.c.to_ada (name, udev.name);
 
       -- Is it an existing device ?
       -- Note: GPIOs (size = 0) are not considered as devices despite a task
       --       can register them. Thus, we don't look for them in soc.devmap.periphs
       --       table.
-      if udev.all.size /= 0 then
+      if udev.size /= 0 then
          periph_id :=
-            soc.devmap.find_periph (udev.all.base_addr, udev.all.size);
+            soc.devmap.find_periph (udev.base_addr, udev.size);
          if periph_id = NO_PERIPH then
             pragma DEBUG (debug.log (debug.ERROR, "Device not existing: " & name));
             success := false;
@@ -270,7 +275,7 @@ is
       -- Registering the device
       pragma DEBUG (debug.log (debug.INFO, "Registered device: " & name));
 
-      registered_device(dev_id).udev      := t_checked_user_device (udev.all);
+      registered_device(dev_id).udev      := t_checked_user_device (udev);
       registered_device(dev_id).task_id   := task_id;
       registered_device(dev_id).periph_id := periph_id;
       registered_device(dev_id).status    := DEV_STATE_REGISTERED;
@@ -404,7 +409,7 @@ is
 
 
    function sanitize_user_defined_interrupt
-     (udev     : in  ewok.exported.devices.t_user_device_access;
+     (udev     : in  ewok.exported.devices.t_user_device;
       config   : in  ewok.exported.interrupts.t_interrupt_config;
       task_id  : in  t_task_id)
       return boolean
@@ -446,7 +451,7 @@ is
             when POSTHOOK_NIL       => null;
 
             when POSTHOOK_READ      =>
-               if config.posthook.action(i).read.offset > udev.all.size - 4 or
+               if config.posthook.action(i).read.offset > udev.size - 4 or
                   (config.posthook.action(i).read.offset and 2#11#) > 0
                then
                   pragma DEBUG (debug.log (debug.ERROR, "Posthook: wrong READ offset"));
@@ -454,7 +459,7 @@ is
                end if;
 
             when POSTHOOK_WRITE     =>
-               if config.posthook.action(i).write.offset > udev.all.size - 4 or
+               if config.posthook.action(i).write.offset > udev.size - 4 or
                   (config.posthook.action(i).write.offset and 2#11#) > 0
                then
                   pragma DEBUG (debug.log (debug.ERROR, "Posthook: wrong WRITE offset"));
@@ -463,11 +468,11 @@ is
 
             when POSTHOOK_WRITE_REG =>
                if config.posthook.action(i).write_reg.offset_dest >
-                     udev.all.size - 4
+                     udev.size - 4
                   or (config.posthook.action(i).write_reg.offset_dest and 2#11#)
                         > 0
                   or config.posthook.action(i).write_reg.offset_src >
-                        udev.all.size - 4
+                        udev.size - 4
                   or (config.posthook.action(i).write_reg.offset_src and 2#11#)
                         > 0
                then
@@ -478,15 +483,15 @@ is
             when POSTHOOK_WRITE_MASK =>
 
                if config.posthook.action(i).write_mask.offset_dest >
-                     udev.all.size - 4
+                     udev.size - 4
                   or (config.posthook.action(i).write_mask.offset_dest and 2#11#)
                         > 0
                   or config.posthook.action(i).write_mask.offset_src >
-                        udev.all.size - 4
+                        udev.size - 4
                   or (config.posthook.action(i).write_mask.offset_src and 2#11#)
                         > 0
                   or config.posthook.action(i).write_mask.offset_mask >
-                        udev.all.size - 4
+                        udev.size - 4
                   or (config.posthook.action(i).write_mask.offset_mask and 2#11#)
                         > 0
                then
@@ -503,7 +508,7 @@ is
 
 
    function sanitize_user_defined_gpio
-     (udev     : in  ewok.exported.devices.t_user_device_access;
+     (udev     : in  ewok.exported.devices.t_user_device;
       config   : in  ewok.exported.gpios.t_gpio_config;
       task_id  : in  t_task_id)
       return boolean
@@ -537,29 +542,29 @@ is
 
 
    function sanitize_user_defined_device
-     (udev     : in  ewok.exported.devices.t_user_device_access;
+     (udev     : in  ewok.exported.devices.t_user_device;
       task_id  : in  t_task_id)
       return boolean
    is
-      len      : constant natural := types.c.len (udev.all.name);
+      len      : constant natural := types.c.len (udev.name);
       name     : string (1 .. natural'min (t_device_name'length, len));
       periph_id: soc.devmap.t_periph_id;
       ok       : boolean;
    begin
 
-      if udev.all.name(t_device_name'last) /= ASCII.NUL then
-         types.c.to_ada (name, udev.all.name(1 .. t_device_name'length));
+      if udev.name(t_device_name'last) /= ASCII.NUL then
+         types.c.to_ada (name, udev.name(1 .. t_device_name'length));
          pragma DEBUG (debug.log (debug.ERROR, "Out-of-bound device name: " & name));
          return false;
       else
-         types.c.to_ada (name, udev.all.name);
+         types.c.to_ada (name, udev.name);
       end if;
 
-      if udev.all.size /= 0 then
-         periph_id := soc.devmap.find_periph (udev.all.base_addr, udev.all.size);
+      if udev.size /= 0 then
+         periph_id := soc.devmap.find_periph (udev.base_addr, udev.size);
          if periph_id = NO_PERIPH then
             pragma DEBUG (debug.log (debug.ERROR, "Device at addr" & system_address'image
-               (udev.all.base_addr) & -- " with size" & unsigned_32'image (udev.all.size) &
+               (udev.base_addr) & -- " with size" & unsigned_32'image (udev.size) &
                ": not found"));
             return false;
          end if;
@@ -572,24 +577,24 @@ is
          end if;
       end if;
 
-      for i in 1 .. udev.all.interrupt_num loop
+      for i in 1 .. udev.interrupt_num loop
          ok := sanitize_user_defined_interrupt
-                 (udev, udev.all.interrupts(i), task_id);
+                 (udev, udev.interrupts(i), task_id);
          if not ok then
             pragma DEBUG (debug.log (debug.ERROR, name & ": invalid udev.interrupts parameter"));
             return false;
          end if;
       end loop;
 
-      for i in 1 .. udev.all.gpio_num loop
-         ok := sanitize_user_defined_gpio (udev, udev.all.gpios(i), task_id);
+      for i in 1 .. udev.gpio_num loop
+         ok := sanitize_user_defined_gpio (udev, udev.gpios(i), task_id);
          if not ok then
             pragma DEBUG (debug.log (debug.ERROR, name & ": invalid udev.gpios parameter"));
             return false;
          end if;
       end loop;
 
-      if udev.all.map_mode = DEV_MAP_VOLUNTARY then
+      if udev.map_mode = DEV_MAP_VOLUNTARY then
          if not ewok.perm.ressource_is_granted (PERM_RES_MEM_DYNAMIC_MAP, task_id) then
             pragma DEBUG (debug.log (debug.ERROR, name & ": voluntary mapping not permited"));
             return false;

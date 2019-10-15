@@ -35,8 +35,6 @@ with ewok.syscalls.rng;
 with ewok.syscalls.sleep;
 with ewok.syscalls.yield;
 with ewok.syscalls.exiting;
-with ewok.exported.interrupts;
-   use type ewok.exported.interrupts.t_interrupt_config_access;
 
 #if CONFIG_KERNEL_DMA_ENABLE
 with ewok.syscalls.dma;

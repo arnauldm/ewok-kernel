@@ -65,14 +65,16 @@ is
    is
       dev_id   : ewok.devices_shared.t_device_id;
       dev_addr : system_address;
-      config   : ewok.exported.interrupts.t_interrupt_config_access;
+      config   : ewok.exported.interrupts.t_interrupt_config;
       found    : boolean;
       val      : unsigned_32;
       mask     : unsigned_32;
+      ok       : boolean;
    begin
 
-      config := ewok.devices.get_interrupt_config_from_interrupt (intr);
-      if config = NULL then
+      ewok.devices.get_interrupt_config (intr, config, ok);
+
+      if not ok then
          status := 0;
          data   := 0;
          return;
@@ -94,8 +96,8 @@ is
       m4.cpu.disable_irq;
 #end if;
 
-      for i in config.all.posthook.action'range loop
-         case config.all.posthook.action(i).instr is
+      for i in config.posthook.action'range loop
+         case config.posthook.action(i).instr is
 
             when POSTHOOK_NIL    =>
 #if CONFIG_KERNEL_EXP_REENTRANCY
@@ -106,21 +108,21 @@ is
 
             when POSTHOOK_READ   =>
                val := read_register (dev_addr +
-                  system_address (config.all.posthook.action(i).read.offset));
+                  system_address (config.posthook.action(i).read.offset));
 
-               config.all.posthook.action(i).read.value := val;
+               config.posthook.action(i).read.value := val;
 
                -- This value need to be saved ?
-               if config.all.posthook.status =
-                     config.all.posthook.action(i).read.offset
+               if config.posthook.status =
+                     config.posthook.action(i).read.offset
                then
                   status := val;
                end if;
 
                -- This value need to be saved ?
                if
-                  config.all.posthook.data =
-                     config.all.posthook.action(i).read.offset
+                  config.posthook.data =
+                     config.posthook.action(i).read.offset
                then
                   data := val;
                end if;
@@ -128,19 +130,19 @@ is
             when POSTHOOK_WRITE  =>
                set_bits_in_register
                  (dev_addr + system_address
-                    (config.all.posthook.action(i).write.offset),
-                  config.all.posthook.action(i).write.mask,
-                  config.all.posthook.action(i).write.value);
+                    (config.posthook.action(i).write.offset),
+                  config.posthook.action(i).write.mask,
+                  config.posthook.action(i).write.value);
 
             when POSTHOOK_WRITE_REG    =>
                -- Retrieving the already read register value
                found := false;
-               for j in config.all.posthook.action'first .. i loop
-                  if config.all.posthook.action(j).instr = POSTHOOK_READ and then
-                     config.all.posthook.action(j).read.offset =
-                        config.all.posthook.action(i).write_reg.offset_src
+               for j in config.posthook.action'first .. i loop
+                  if config.posthook.action(j).instr = POSTHOOK_READ and then
+                     config.posthook.action(j).read.offset =
+                        config.posthook.action(i).write_reg.offset_src
                   then
-                     val   := config.all.posthook.action(j).read.value;
+                     val   := config.posthook.action(j).read.value;
                      found := true;
                      exit;
                   end if;
@@ -148,34 +150,34 @@ is
 
                if not found then
                   val := read_register (dev_addr + system_address
-                     (config.all.posthook.action(i).write_reg.offset_src));
+                     (config.posthook.action(i).write_reg.offset_src));
                end if;
 
                -- Calculating the mask to apply in order to write only active
                -- bits
-               mask := config.all.posthook.action(i).write_reg.mask and val;
+               mask := config.posthook.action(i).write_reg.mask and val;
 
                -- Inverted write might be needed
-               if config.all.posthook.action(i).write_reg.mode = MODE_NOT then
+               if config.posthook.action(i).write_reg.mode = MODE_NOT then
                   val := not val;
                end if;
 
                -- Writing into the destination register
                set_bits_in_register
                  (dev_addr + system_address
-                    (config.all.posthook.action(i).write_reg.offset_dest),
+                    (config.posthook.action(i).write_reg.offset_dest),
                   mask,
                   val);
 
             when POSTHOOK_WRITE_MASK   =>
                -- Retrieving the value
                found := false;
-               for j in config.all.posthook.action'first .. i loop
-                  if config.all.posthook.action(j).instr = POSTHOOK_READ and then
-                     config.all.posthook.action(j).read.offset =
-                        config.all.posthook.action(i).write_mask.offset_src
+               for j in config.posthook.action'first .. i loop
+                  if config.posthook.action(j).instr = POSTHOOK_READ and then
+                     config.posthook.action(j).read.offset =
+                        config.posthook.action(i).write_mask.offset_src
                   then
-                     val   := config.all.posthook.action(j).read.value;
+                     val   := config.posthook.action(j).read.value;
                      found := true;
                      exit;
                   end if;
@@ -183,17 +185,17 @@ is
 
                if not found then
                   val := read_register (dev_addr + system_address
-                     (config.all.posthook.action(i).write_mask.offset_src));
+                     (config.posthook.action(i).write_mask.offset_src));
                end if;
 
                -- Retrieving the mask
                found := false;
-               for j in config.all.posthook.action'first .. i loop
-                  if config.all.posthook.action(j).instr = POSTHOOK_READ and then
-                     config.all.posthook.action(j).read.offset =
-                        config.all.posthook.action(i).write_mask.offset_mask
+               for j in config.posthook.action'first .. i loop
+                  if config.posthook.action(j).instr = POSTHOOK_READ and then
+                     config.posthook.action(j).read.offset =
+                        config.posthook.action(i).write_mask.offset_mask
                   then
-                     mask  := config.all.posthook.action(j).read.value;
+                     mask  := config.posthook.action(j).read.value;
                      found := true;
                      exit;
                   end if;
@@ -201,21 +203,21 @@ is
 
                if not found then
                   mask := read_register (dev_addr + system_address
-                     (config.all.posthook.action(i).write_mask.offset_mask));
+                     (config.posthook.action(i).write_mask.offset_mask));
                end if;
 
                -- Calculating the mask
                mask := mask and val;
 
                -- Inverted write might be needed
-               if config.all.posthook.action(i).write_mask.mode = MODE_NOT then
+               if config.posthook.action(i).write_mask.mode = MODE_NOT then
                   val := not val;
                end if;
 
                -- Writing into the destination register
                set_bits_in_register
                  (dev_addr + system_address
-                    (config.all.posthook.action(i).write_mask.offset_dest),
+                    (config.posthook.action(i).write_mask.offset_dest),
                   mask,
                   val);
 

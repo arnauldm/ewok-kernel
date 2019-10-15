@@ -99,8 +99,7 @@ is
       end if;
 
       if TSK.is_real_user (caller_id) and then
-         not ewok.devices.sanitize_user_defined_device
-                 (udev'unchecked_access, caller_id)
+         not ewok.devices.sanitize_user_defined_device (udev, caller_id)
       then
          pragma DEBUG (debug.log (debug.ERROR, "svc_register_device(): invalid udev"));
          goto ret_inval;
@@ -126,8 +125,7 @@ is
       -- Registering the device
       --
 
-      ewok.devices.register_device
-        (caller_id, udev'unchecked_access, dev_id, ok);
+      ewok.devices.register_device (caller_id, udev, dev_id, ok);
 
       if not ok then
          pragma DEBUG (debug.log (debug.ERROR,

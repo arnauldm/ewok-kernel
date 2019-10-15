@@ -106,6 +106,4 @@ is
       posthook    : t_interrupt_posthook;
    end record;
 
-   type t_interrupt_config_access is access all t_interrupt_config;
-
 end ewok.exported.interrupts;

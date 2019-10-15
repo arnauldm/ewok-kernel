@@ -75,13 +75,14 @@ is
    function get_device_map_mode (dev_id : t_registered_device_id)
       return ewok.exported.devices.t_dev_map_mode;
 
-   function get_interrupt_config_from_interrupt
-     (interrupt : soc.interrupts.t_interrupt)
-      return ewok.exported.interrupts.t_interrupt_config_access;
+   procedure get_interrupt_config
+     (interrupt   : in  soc.interrupts.t_interrupt;
+      config      : out ewok.exported.interrupts.t_interrupt_config;
+      success     : out boolean);
 
    procedure register_device
      (task_id  : in  t_task_id;
-      udev     : in  ewok.exported.devices.t_user_device_access;
+      udev     : in  ewok.exported.devices.t_user_device;
       dev_id   : out t_device_id;
       success  : out boolean);
 
@@ -95,7 +96,7 @@ is
       success  : out boolean);
 
    function sanitize_user_defined_device
-     (udev     : in  ewok.exported.devices.t_user_device_access;
+     (udev     : in  ewok.exported.devices.t_user_device;
       task_id  : in  t_task_id)
       return boolean;
 

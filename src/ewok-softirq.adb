@@ -25,7 +25,6 @@ with ewok.tasks;        use ewok.tasks;
 with ewok.debug;
 with ewok.devices;
 with ewok.exported.interrupts;
-   use type ewok.exported.interrupts.t_interrupt_config_access;
 with ewok.interrupts;
 with ewok.layout;
 with ewok.sched;
@@ -81,7 +80,8 @@ is
    procedure isr_handler (req : in  t_isr_request)
    is
       params   : t_parameters;
-      config_a : ewok.exported.interrupts.t_interrupt_config_access;
+      config   : ewok.exported.interrupts.t_interrupt_config;
+      ok       : boolean;
    begin
 
       -- For further MPU mapping of the device, we need to know which device
@@ -100,11 +100,10 @@ is
       -- of the ISR execution
       -- Note - see above
 
-      config_a :=
-         ewok.devices.get_interrupt_config_from_interrupt (req.params.interrupt);
+      ewok.devices.get_interrupt_config (req.params.interrupt, config, ok);
 
-      if config_a /= NULL then
-         TSK.tasks_list(req.caller_id).isr_ctx.sched_policy := config_a.all.mode;
+      if ok then
+         TSK.tasks_list(req.caller_id).isr_ctx.sched_policy := config.mode;
       else
          TSK.tasks_list(req.caller_id).isr_ctx.sched_policy := ISR_STANDARD;
       end if;
