@@ -26,37 +26,20 @@ with ewok.tasks_shared;
 with ewok.devices_shared;
 
 package ewok.interrupts
-   with spark_mode => off
+   with spark_mode => on
 is
-
-   type t_interrupt_handler_access is access
-      procedure (frame_a : in ewok.t_stack_frame_access);
-
-   type t_interrupt_task_switch_handler_access is access
-      function (frame_a : ewok.t_stack_frame_access)
-         return ewok.t_stack_frame_access;
 
    type t_handler_type is (DEFAULT_HANDLER, TASK_SWITCH_HANDLER);
 
-   type t_interrupt_cell (htype : t_handler_type := DEFAULT_HANDLER) is record
-      task_id     : ewok.tasks_shared.t_task_id;
-      device_id   : ewok.devices_shared.t_device_id;
-      case htype is
-         when DEFAULT_HANDLER       =>
-            handler              : t_interrupt_handler_access;
-         when TASK_SWITCH_HANDLER   =>
-            task_switch_handler  : t_interrupt_task_switch_handler_access;
-      end case;
+   type t_interrupt_cell is record
+      task_id        : ewok.tasks_shared.t_task_id;
+      device_id      : ewok.devices_shared.t_device_id;
+      handler        : system_address;
+      handler_type   : t_handler_type;
    end record;
 
-   interrupt_table : array (soc.interrupts.t_interrupt) of aliased t_interrupt_cell;
-
-
-   function to_system_address is new ada.unchecked_conversion
-     (t_interrupt_handler_access, system_address);
-
-   function to_handler_access is new ada.unchecked_conversion
-     (system_address, t_interrupt_handler_access);
+   interrupt_table :
+      array (soc.interrupts.t_interrupt) of aliased t_interrupt_cell;
 
    procedure init;
 
@@ -64,23 +47,17 @@ is
      (interrupt : soc.interrupts.t_interrupt) return boolean;
 
    procedure set_interrupt_handler
-     (interrupt   : in  soc.interrupts.t_interrupt;
-      handler     : in  t_interrupt_handler_access;
-      task_id     : in  ewok.tasks_shared.t_task_id;
-      device_id   : in  ewok.devices_shared.t_device_id;
-      success     : out boolean);
+     (interrupt      : in  soc.interrupts.t_interrupt;
+      handler_type   : in  t_handler_type;
+      handler        : in  system_address;
+      task_id        : in  ewok.tasks_shared.t_task_id;
+      device_id      : in  ewok.devices_shared.t_device_id)
+      with pre => handler /= 0;
 
    procedure reset_interrupt_handler
      (interrupt   : in  soc.interrupts.t_interrupt;
       task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id);
-
-   procedure set_task_switching_handler
-     (interrupt   : in  soc.interrupts.t_interrupt;
-      handler     : in  t_interrupt_task_switch_handler_access;
-      task_id     : in  ewok.tasks_shared.t_task_id;
-      device_id   : in  ewok.devices_shared.t_device_id;
-      success     : out boolean);
 
    function get_device_from_interrupt
      (interrupt : soc.interrupts.t_interrupt)

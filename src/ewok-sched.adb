@@ -393,37 +393,30 @@ is
    procedure init
    is
       idle_task   : t_task renames ewok.tasks.tasks_list(ID_KERNEL);
-      ok          : boolean;
    begin
 
       current_task_id := ID_KERNEL;
 
-      ewok.interrupts.set_task_switching_handler
+      ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_SYSTICK,
-         systick_handler'access,
+         ewok.interrupts.TASK_SWITCH_HANDLER,
+         to_system_address (systick_handler'address),
          ID_KERNEL,
-         ID_DEV_UNUSED,
-         ok);
+         ID_DEV_UNUSED);
 
-      if not ok then raise program_error; end if;
-
-      ewok.interrupts.set_task_switching_handler
+      ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_PENDSV,
-         pendsv_handler'access,
+         ewok.interrupts.TASK_SWITCH_HANDLER,
+         to_system_address (pendsv_handler'address),
          ID_KERNEL,
-         ID_DEV_UNUSED,
-         ok);
+         ID_DEV_UNUSED);
 
-      if not ok then raise program_error; end if;
-
-      ewok.interrupts.set_task_switching_handler
+      ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_SVC,
-         ewok.syscalls.handler.svc_handler'access,
+         ewok.interrupts.TASK_SWITCH_HANDLER,
+         to_system_address (ewok.syscalls.handler.svc_handler'address),
          ID_KERNEL,
-         ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ID_DEV_UNUSED);
 
       --
       -- Jump to the kernel task

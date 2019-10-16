@@ -20,7 +20,6 @@
 --
 --
 
-with soc.interrupts; use soc.interrupts;
 with ewok.posthook;
 with ewok.softirq;
 with ewok.dma;
@@ -28,12 +27,12 @@ with soc.dma;
 with soc.nvic;
 
 package body ewok.isr
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure postpone_isr
      (intr     : in soc.interrupts.t_interrupt;
-      handler  : in ewok.interrupts.t_interrupt_handler_access;
+      handler  : in system_address;
       task_id  : in ewok.tasks_shared.t_task_id)
    is
 
@@ -43,7 +42,7 @@ is
       pragma warnings (on);
 
       dma_status  : soc.dma.t_dma_stream_int_status;
-      status      : unsigned_32 := 0;
+      status      : unsigned_32;
       data        : unsigned_32 := 0;
       isr_params  : ewok.softirq.t_isr_parameters;
       ok          : boolean;
@@ -77,7 +76,7 @@ is
       soc.nvic.clear_pending_irq (soc.nvic.to_irq_number (intr));
 
       -- Pushing the request for further treatment by softirq
-      isr_params.handler          := ewok.interrupts.to_system_address (handler);
+      isr_params.handler          := handler;
       isr_params.interrupt        := intr;
       isr_params.posthook_status  := status;
       isr_params.posthook_data    := data;

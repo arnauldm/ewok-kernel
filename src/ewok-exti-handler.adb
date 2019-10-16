@@ -39,71 +39,56 @@ is
 
    procedure init
    is
-      ok : boolean;
    begin
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI0,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI1,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI2,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI3,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI4,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI9_5,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
       ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_EXTI15_10,
-         exti_handler'access,
+         ewok.interrupts.DEFAULT_HANDLER,
+         to_system_address (exti_handler'address),
          ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED,
-         ok);
-
-      if not ok then raise program_error; end if;
+         ewok.devices_shared.ID_DEV_UNUSED);
 
    end init;
 
@@ -140,9 +125,7 @@ is
          gpio_config := ewok.gpio.get_config (ref);
 
          ewok.isr.postpone_isr
-           (interrupt,
-            ewok.interrupts.to_handler_access (gpio_config.exti_handler),
-            task_id);
+           (interrupt, gpio_config.exti_handler, task_id);
 
          -- if the EXTI line is configured as lockable by the kernel, the
          -- EXTI line is disabled here, and must be unabled later by the

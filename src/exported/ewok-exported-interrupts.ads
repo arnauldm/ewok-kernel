@@ -21,11 +21,10 @@
 --
 
 with ewok.tasks_shared;
-with ewok.interrupts;
 with soc.interrupts;
 
 package ewok.exported.interrupts
-   with spark_mode => off
+   with spark_mode => on
 is
 
    MAX_POSTHOOK_INSTR  : constant := 10;
@@ -100,7 +99,7 @@ is
    end record;
 
    type t_interrupt_config is record
-      handler     : ewok.interrupts.t_interrupt_handler_access := NULL;
+      handler     : system_address := 0;
       interrupt   : soc.interrupts.t_interrupt                 := soc.interrupts.INT_NONE;
       mode        : ewok.tasks_shared.t_scheduling_post_isr;
       posthook    : t_interrupt_posthook;

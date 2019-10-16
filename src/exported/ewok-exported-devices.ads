@@ -25,7 +25,7 @@ with ewok.exported.interrupts;
 with ewok.exported.gpios;
 
 package ewok.exported.devices
-   with spark_mode => off
+   with spark_mode => on
 is
 
    MAX_INTERRUPTS    : constant := 4;

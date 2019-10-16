@@ -27,8 +27,8 @@ with ewok.tasks.debug;
 with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.sched;
-with soc.interrupts;
 with ewok.debug;
+with soc.interrupts;
 
 package body ewok.mpu.handler
    with spark_mode => off
@@ -69,15 +69,13 @@ is
 
    procedure init
    is
-      ok : boolean;
    begin
-      ewok.interrupts.set_task_switching_handler
+      ewok.interrupts.set_interrupt_handler
         (soc.interrupts.INT_MEMMANAGE,
-         memory_fault_handler'access,
+         ewok.interrupts.TASK_SWITCH_HANDLER,
+         to_system_address (memory_fault_handler'address),
          ID_KERNEL,
-         ID_DEV_UNUSED,
-         ok);
-      if not ok then raise program_error; end if;
+         ID_DEV_UNUSED);
    end init;
 
 

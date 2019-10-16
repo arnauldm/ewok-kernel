@@ -310,7 +310,6 @@ is
       success        : out    boolean)
    is
       periph_id   : constant soc.devmap.t_periph_id := registered_dma(index).periph_id;
-      ok          : boolean;
    begin
 
       if not to_configure.buffer_size then
@@ -362,14 +361,10 @@ is
 
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list(soc.devmap.t_interrupt_range'first),
-                  ewok.interrupts.to_handler_access (user_config.out_handler),
+                  ewok.interrupts.DEFAULT_HANDLER,
+                  user_config.out_handler,
                   caller_id,
-                  ewok.devices_shared.ID_DEV_UNUSED,
-                  ok);
-
-               if not ok then
-                  raise program_error;
-               end if;
+                  ewok.devices_shared.ID_DEV_UNUSED);
 
             when MEMORY_TO_PERIPHERAL  =>
                registered_dma(index).config.in_handler :=
@@ -377,14 +372,10 @@ is
 
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list (soc.devmap.t_interrupt_range'first),
-                  ewok.interrupts.to_handler_access (user_config.in_handler),
+                  ewok.interrupts.DEFAULT_HANDLER,
+                  user_config.in_handler,
                   caller_id,
-                  ewok.devices_shared.ID_DEV_UNUSED,
-                  ok);
-
-               if not ok then
-                  raise program_error;
-               end if;
+                  ewok.devices_shared.ID_DEV_UNUSED);
 
             when MEMORY_TO_MEMORY      =>
                pragma DEBUG (debug.log (debug.ERROR, "reconfigure_stream(): MEMORY_TO_MEMORY not implemented"));
@@ -470,28 +461,22 @@ is
             if user_config.out_handler /= 0 then
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list(soc.devmap.t_interrupt_range'first),
-                  ewok.interrupts.to_handler_access (user_config.out_handler),
+                  ewok.interrupts.DEFAULT_HANDLER,
+                  user_config.out_handler,
                   caller_id,
-                  ewok.devices_shared.ID_DEV_UNUSED,
-                  ok);
+                  ewok.devices_shared.ID_DEV_UNUSED);
 
-                  if not ok then
-                     raise program_error;
-                  end if;
             end if;
 
          when MEMORY_TO_PERIPHERAL  =>
             if user_config.in_handler /= 0 then
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list(soc.devmap.t_interrupt_range'first),
-                  ewok.interrupts.to_handler_access (user_config.in_handler),
+                  ewok.interrupts.DEFAULT_HANDLER,
+                  user_config.in_handler,
                   caller_id,
-                  ewok.devices_shared.ID_DEV_UNUSED,
-                  ok);
+                  ewok.devices_shared.ID_DEV_UNUSED);
 
-                  if not ok then
-                     raise program_error;
-                  end if;
             end if;
 
          when MEMORY_TO_MEMORY      =>
@@ -584,13 +569,11 @@ is
          return;
       end if;
 
-      soc.dma.interfaces.get_interrupt_status
-        (soc_dma_id, soc_stream_id, status);
-
+      soc.dma.interfaces.get_interrupt_status (soc_dma_id, soc_stream_id,
+         status);
       soc.dma.interfaces.clear_all_interrupts (soc_dma_id, soc_stream_id);
 
       success := true;
-
    end get_status_register;
 
 

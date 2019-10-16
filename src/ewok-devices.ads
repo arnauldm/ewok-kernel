@@ -28,7 +28,7 @@ with soc.interrupts;
 with soc.devmap;
 
 package ewok.devices
-   with spark_mode => off
+   with spark_mode => on
 is
 
    type t_device_type is (DEV_TYPE_USER, DEV_TYPE_KERNEL);

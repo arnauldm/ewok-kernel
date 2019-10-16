@@ -310,13 +310,10 @@ is
       for i in 1 .. udev.interrupt_num loop
          ewok.interrupts.set_interrupt_handler
            (udev.interrupts(i).interrupt,
+            DEFAULT_HANDLER,
             udev.interrupts(i).handler,
             task_id,
-            dev_id,
-            success);
-         if not success then
-            raise program_error;
-         end if;
+            dev_id);
       end loop;
 
       success := true;
@@ -416,8 +413,7 @@ is
    is
    begin
 
-      if not ewok.sanitize.is_word_in_txt_slot
-            (to_system_address (config.handler), task_id)
+      if not ewok.sanitize.is_word_in_txt_slot (config.handler, task_id)
       then
          pragma DEBUG (debug.log (debug.ERROR, "Handler not in .text section"));
          return false;

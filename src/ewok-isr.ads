@@ -21,16 +21,17 @@
 --
 
 with ewok.tasks_shared;
-with ewok.interrupts;
-with soc.interrupts;
+with soc.interrupts; use soc.interrupts;
 
 package ewok.isr
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure postpone_isr
      (intr     : in soc.interrupts.t_interrupt;
-      handler  : in ewok.interrupts.t_interrupt_handler_access;
-      task_id  : in ewok.tasks_shared.t_task_id);
+      handler  : in system_address;
+      task_id  : in ewok.tasks_shared.t_task_id)
+   with
+      pre => intr >= soc.interrupts.INT_WWDG;
 
 end ewok.isr;

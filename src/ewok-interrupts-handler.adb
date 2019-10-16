@@ -37,6 +37,20 @@ package body ewok.interrupts.handler
    with spark_mode => off
 is
 
+   type t_interrupt_handler_access is access
+      procedure (frame_a : in ewok.t_stack_frame_access);
+
+   type t_interrupt_task_switch_handler_access is access
+      function (frame_a : ewok.t_stack_frame_access)
+         return ewok.t_stack_frame_access;
+
+   function exec_handler is new ada.unchecked_conversion
+     (system_address, t_interrupt_handler_access);
+
+   function exec_switching_handler is new ada.unchecked_conversion
+     (system_address, t_interrupt_task_switch_handler_access);
+
+
    function busfault_handler
      (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access
    is
@@ -45,6 +59,7 @@ is
       debug.panic ("Bus fault!");
       return frame_a;
    end busfault_handler;
+
 
    function usagefault_handler
      (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access
@@ -95,7 +110,8 @@ is
          -- System exceptions
          if it < INT_WWDG then
             if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL then
-               new_frame_a := interrupt_table(it).task_switch_handler (frame_a);
+               new_frame_a :=
+                  exec_switching_handler (interrupt_table(it).handler) (frame_a);
             else
                debug.panic ("Unhandled exception " & t_interrupt'image (it));
             end if;
@@ -103,7 +119,7 @@ is
          -- External interrupts
             -- Execute kernel ISR
             if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL then
-               interrupt_table(it).handler (frame_a);
+               exec_handler (interrupt_table(it).handler) (frame_a);
                new_frame_a := frame_a;
 
             -- User ISR are postponed (asynchronous execution)
@@ -150,9 +166,11 @@ is
                when INT_PENDSV  => debug.panic ("Nested PendSV not handled.");
                when INT_SYSTICK => null;
                when others      =>
-                  if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL then
+                  if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL
+                  then
                      new_frame_a :=
-                        interrupt_table(it).task_switch_handler (frame_a);
+                        exec_switching_handler (interrupt_table(it).handler)
+                           (frame_a);
                   else
                      debug.panic
                        ("Unhandled exception " & t_interrupt'image (it));
@@ -163,7 +181,7 @@ is
          -- External interrupts
             -- Execute kernel ISR
             if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL then
-               interrupt_table(it).handler (frame_a);
+               exec_handler (interrupt_table(it).handler) (frame_a);
 
             -- User ISR are postponed (asynchronous execution)
             elsif interrupt_table(it).task_id /= ewok.tasks_shared.ID_UNUSED then

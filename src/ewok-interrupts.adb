@@ -39,39 +39,43 @@ is
 
       for i in interrupt_table'range loop
          interrupt_table(i) :=
-           (htype     => DEFAULT_HANDLER,
-            handler   => NULL,
-            task_id   => ewok.tasks_shared.ID_UNUSED,
-            device_id => ewok.devices_shared.ID_DEV_UNUSED);
+           (handler_type   => DEFAULT_HANDLER,
+            handler        => 0,
+            task_id        => ewok.tasks_shared.ID_UNUSED,
+            device_id      => ewok.devices_shared.ID_DEV_UNUSED);
       end loop;
 
       interrupt_table(soc.interrupts.INT_HARDFAULT) :=
-           (htype     => TASK_SWITCH_HANDLER,
-            task_switch_handler =>
-               ewok.interrupts.handler.hardfault_handler'access,
-            task_id   => ewok.tasks_shared.ID_KERNEL,
-            device_id => ewok.devices_shared.ID_DEV_UNUSED);
+           (handler_type   => TASK_SWITCH_HANDLER,
+            handler     =>
+               to_system_address
+                 (ewok.interrupts.handler.hardfault_handler'address),
+            task_id     => ewok.tasks_shared.ID_KERNEL,
+            device_id   => ewok.devices_shared.ID_DEV_UNUSED);
 
       interrupt_table(soc.interrupts.INT_BUSFAULT) :=
-           (htype     => TASK_SWITCH_HANDLER,
-            task_switch_handler =>
-               ewok.interrupts.handler.busfault_handler'access,
-            task_id   => ewok.tasks_shared.ID_KERNEL,
-            device_id => ewok.devices_shared.ID_DEV_UNUSED);
+           (handler_type   => TASK_SWITCH_HANDLER,
+            handler     =>
+               to_system_address
+                 (ewok.interrupts.handler.busfault_handler'address),
+            task_id     => ewok.tasks_shared.ID_KERNEL,
+            device_id   => ewok.devices_shared.ID_DEV_UNUSED);
 
       interrupt_table(soc.interrupts.INT_USAGEFAULT) :=
-           (htype     => TASK_SWITCH_HANDLER,
-            task_switch_handler =>
-               ewok.interrupts.handler.usagefault_handler'access,
-            task_id   => ewok.tasks_shared.ID_KERNEL,
-            device_id => ewok.devices_shared.ID_DEV_UNUSED);
+           (handler_type     => TASK_SWITCH_HANDLER,
+            handler     =>
+               to_system_address
+                 (ewok.interrupts.handler.usagefault_handler'address),
+            task_id     => ewok.tasks_shared.ID_KERNEL,
+            device_id   => ewok.devices_shared.ID_DEV_UNUSED);
 
       interrupt_table(soc.interrupts.INT_SYSTICK) :=
-           (htype     => TASK_SWITCH_HANDLER,
-            task_switch_handler =>
-               ewok.interrupts.handler.systick_default_handler'access,
-            task_id   => ewok.tasks_shared.ID_KERNEL,
-            device_id => ewok.devices_shared.ID_DEV_UNUSED);
+           (handler_type     => TASK_SWITCH_HANDLER,
+            handler     =>
+               to_system_address
+                 (ewok.interrupts.handler.systick_default_handler'address),
+            task_id     => ewok.tasks_shared.ID_KERNEL,
+            device_id   => ewok.devices_shared.ID_DEV_UNUSED);
 
       m4.scb.SCB.SHPR1.mem_fault.priority := 0;
       m4.scb.SCB.SHPR1.bus_fault.priority := 1;
@@ -80,7 +84,7 @@ is
       m4.scb.SCB.SHPR3.pendsv.priority    := 4;
       m4.scb.SCB.SHPR3.systick.priority   := 5;
 
-      for irq in soc.nvic.NVIC.IPR'range loop
+      for irq in soc.nvic.t_irq_index'range loop
          soc.nvic.NVIC.IPR(irq).priority := 7;
       end loop;
 
@@ -96,23 +100,15 @@ is
 
 
    procedure set_interrupt_handler
-     (interrupt   : in  soc.interrupts.t_interrupt;
-      handler     : in  t_interrupt_handler_access;
-      task_id     : in  ewok.tasks_shared.t_task_id;
-      device_id   : in  ewok.devices_shared.t_device_id;
-      success     : out boolean)
+     (interrupt      : in  soc.interrupts.t_interrupt;
+      handler_type   : in  t_handler_type;
+      handler        : in  system_address;
+      task_id        : in  ewok.tasks_shared.t_task_id;
+      device_id      : in  ewok.devices_shared.t_device_id)
    is
    begin
-
-      if handler = NULL then
-         raise program_error;
-      end if;
-
       interrupt_table(interrupt) :=
-        (DEFAULT_HANDLER, task_id, device_id, handler);
-
-      success := true;
-
+        (task_id, device_id, handler, handler_type);
    end set_interrupt_handler;
 
 
@@ -129,32 +125,12 @@ is
          raise program_error;
       end if;
 
-      interrupt_table(interrupt).handler     := NULL;
-      interrupt_table(interrupt).task_id     := ID_UNUSED;
-      interrupt_table(interrupt).device_id   := ID_DEV_UNUSED;
+      interrupt_table(interrupt).handler        := 0;
+      interrupt_table(interrupt).handler_type   := DEFAULT_HANDLER;
+      interrupt_table(interrupt).task_id        := ID_UNUSED;
+      interrupt_table(interrupt).device_id      := ID_DEV_UNUSED;
 
    end reset_interrupt_handler;
-
-
-   procedure set_task_switching_handler
-     (interrupt   : in  soc.interrupts.t_interrupt;
-      handler     : in  t_interrupt_task_switch_handler_access;
-      task_id     : in  ewok.tasks_shared.t_task_id;
-      device_id   : in  ewok.devices_shared.t_device_id;
-      success     : out boolean)
-   is
-   begin
-
-      if handler = NULL then
-         raise program_error;
-      end if;
-
-      interrupt_table(interrupt) :=
-        (TASK_SWITCH_HANDLER, task_id, device_id, handler);
-
-      success := true;
-
-   end set_task_switching_handler;
 
 
    function get_device_from_interrupt
