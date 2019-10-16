@@ -24,6 +24,7 @@
 with ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.exported.dma;
+with ewok.devices;
 
 package ewok.sanitize
    with spark_mode => on
@@ -32,37 +33,20 @@ is
    -- Assertions are ignored in compilation
    pragma assertion_policy (pre => IGNORE, post => IGNORE, assert => IGNORE);
 
-   function is_range_in_devices_slot
-     (ptr      : system_address;
-      size     : unsigned_32;
-      task_id  : ewok.tasks_shared.t_task_id)
-      return boolean
-      with
-         global => (input => ewok.tasks.tasks_list);
-
    function is_word_in_data_slot
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id;
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if ptr > system_address'last - 3 then
-                     is_word_in_data_slot'result = false);
+         pre    => task_id /= ID_UNUSED;
 
    function is_word_in_txt_slot
      (ptr      : system_address;
       task_id  : ewok.tasks_shared.t_task_id) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if ptr > system_address'last - 3 then
-                     is_word_in_txt_slot'result = false);
-
-   function is_word_in_allocated_device
-     (ptr      : system_address;
-      task_id  : ewok.tasks_shared.t_task_id)
-      return boolean
-      with
-         global => (input => ewok.tasks.tasks_list);
+         pre    => task_id /= ID_UNUSED;
 
    function is_word_in_any_slot
      (ptr      : system_address;
@@ -70,8 +54,7 @@ is
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if ptr > system_address'last - 3 then
-                     is_word_in_any_slot'result = false);
+         pre    => task_id /= ID_UNUSED;
 
    function is_range_in_data_slot
      (ptr      : system_address;
@@ -80,8 +63,7 @@ is
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if size > 0 and ptr > system_address'last - (size - 1) then
-                     is_range_in_data_slot'result = false);
+         pre    => task_id /= ID_UNUSED;
 
    function is_range_in_txt_slot
      (ptr      : system_address;
@@ -89,8 +71,7 @@ is
       task_id  : ewok.tasks_shared.t_task_id) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if size > 0 and ptr > system_address'last - (size - 1) then
-                     is_range_in_txt_slot'result = false);
+         pre    => task_id /= ID_UNUSED;
 
    function is_range_in_any_slot
      (ptr      : system_address;
@@ -99,8 +80,7 @@ is
       mode     : ewok.tasks_shared.t_task_mode) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if size > 0 and ptr > system_address'last - (size - 1) then
-                     is_range_in_any_slot'result = false);
+         pre    => task_id /= ID_UNUSED;
 
    function is_range_in_dma_shm
      (ptr         : system_address;
@@ -109,7 +89,25 @@ is
       task_id     : ewok.tasks_shared.t_task_id) return boolean
       with
          global => (input => ewok.tasks.tasks_list),
-         post   => (if size > 0 and ptr > system_address'last - (size - 1) then
-                     is_range_in_dma_shm'result = false);
+         pre    => task_id /= ID_UNUSED;
+
+   function is_word_in_allocated_device
+     (ptr      : system_address;
+      task_id  : ewok.tasks_shared.t_task_id)
+      return boolean
+      with
+         global => (input => (ewok.tasks.tasks_list,
+                              ewok.devices.registered_device)),
+         pre    => task_id /= ID_UNUSED;
+
+   function is_range_in_devices_slot
+     (ptr      : system_address;
+      size     : unsigned_32;
+      task_id  : ewok.tasks_shared.t_task_id)
+      return boolean
+      with
+         global => (input => (ewok.tasks.tasks_list,
+                              ewok.devices.registered_device)),
+         pre    => task_id /= ID_UNUSED;
 
 end ewok.sanitize;
