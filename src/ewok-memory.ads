@@ -21,6 +21,7 @@
 --
 
 
+with ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.devices_shared;
 with applications; use applications; -- generated
@@ -42,7 +43,9 @@ is
    -- Map task's code and data sections
    procedure map_code_and_data
      (id : in  t_real_task_id)
-      with inline;
+      with
+         inline,
+         global => (input => ewok.tasks.tasks_list);
 
    -- Unmap the overall userspace content
    procedure unmap_user_code_and_data
@@ -60,7 +63,8 @@ is
       with inline;
 
    procedure unmap_device
-     (dev_id   : in  ewok.devices_shared.t_registered_device_id)
+     (dev_id   : in  ewok.devices_shared.t_registered_device_id;
+      success  : out boolean)
       with inline;
 
    procedure unmap_all_devices
@@ -68,6 +72,8 @@ is
 
    -- Map the whole task (code, data and related devices) in memory
    procedure map_task (id : in t_task_id)
-      with inline;
+      with
+         inline,
+         global => (input => ewok.tasks.tasks_list);
 
 end ewok.memory;

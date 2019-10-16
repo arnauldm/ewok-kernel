@@ -106,11 +106,12 @@ is
 
 
    procedure unmap_device
-     (dev_id   : in  ewok.devices_shared.t_registered_device_id)
+     (dev_id   : in  ewok.devices_shared.t_registered_device_id;
+      success  : out boolean)
    is
    begin
       ewok.mpu.allocator.unmap_from_pool
-        (ewok.devices.get_device_addr (dev_id));
+        (ewok.devices.get_device_addr (dev_id), success);
    end unmap_device;
 
 

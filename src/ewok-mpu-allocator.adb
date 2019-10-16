@@ -22,7 +22,7 @@
 
 
 package body ewok.mpu.allocator
-   with spark_mode => off
+   with spark_mode => on
 is
 
    function free_region_exist return boolean
@@ -76,7 +76,8 @@ is
 
 
    procedure unmap_from_pool
-     (addr     : in  system_address)
+     (addr     : in  system_address;
+      success  : out boolean)
    is
    begin
       for region in regions_pool'range loop
@@ -85,10 +86,11 @@ is
          then
             m4.mpu.disable_region (region);
             regions_pool(region) := (used => false, addr => 0);
+            success := true;
             return;
          end if;
       end loop;
-      raise program_error;
+      success := false;
    end unmap_from_pool;
 
 

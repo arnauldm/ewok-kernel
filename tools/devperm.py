@@ -45,7 +45,7 @@ with ewok.perm;  use ewok.perm;
 with soc.devmap; use soc.devmap;
 
 package ewok.devices.perms
-   with spark_mode => off
+   with spark_mode => on
 is
 
 """;

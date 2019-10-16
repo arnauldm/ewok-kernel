@@ -56,10 +56,10 @@ is
             (addr and (size - 1)) = 0); -- Addr is aligned on size
 
    procedure unmap_from_pool
-     (addr           : in  system_address);
+     (addr           : in  system_address;
+      success        : out boolean);
+
 
    procedure unmap_all_from_pool;
 
 end ewok.mpu.allocator;
-
-

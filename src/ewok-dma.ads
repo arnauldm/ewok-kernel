@@ -30,7 +30,7 @@ with soc.devmap;        use type soc.devmap.t_periph_id;
 
 
 package ewok.dma
-   with spark_mode => off
+   with spark_mode => on
 is
 
    type t_status is (DMA_UNUSED, DMA_USED, DMA_CONFIGURED);

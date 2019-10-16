@@ -27,7 +27,7 @@ with soc.flash;
 with soc.rcc.default;
 
 package body soc.rcc
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure reset

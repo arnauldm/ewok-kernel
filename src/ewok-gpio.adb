@@ -26,24 +26,8 @@ with soc.gpio;            use type soc.gpio.t_gpio_pin_index;
                           use type soc.gpio.t_gpio_port_index;
 
 package body ewok.gpio
-   with spark_mode => off
+   with spark_mode => on
 is
-
-
-   function to_pin_alt_func
-     (u : unsigned_32) return soc.gpio.t_pin_alt_func
-   is
-      pragma warnings (off);
-      function conv is new ada.unchecked_conversion
-        (unsigned_32, soc.gpio.t_pin_alt_func);
-      pragma warnings (on);
-   begin
-      if u > 15 then
-         raise program_error;
-      end if;
-      return conv (u);
-   end to_pin_alt_func;
-
 
    function is_used
      (ref : ewok.exported.gpios.t_gpio_ref)
@@ -100,6 +84,10 @@ is
    procedure config
      (gpio_config : in ewok.exported.gpios.t_gpio_config)
    is
+      pragma warnings (off);
+      function to_pin_alt_func is new ada.unchecked_conversion
+        (unsigned_32, soc.gpio.t_pin_alt_func);
+      pragma warnings (on);
    begin
 
       -- Enable RCC

@@ -98,7 +98,7 @@ is
       pupd           : t_interface_gpio_pupd    := GPIO_NOPULL;
       otype          : t_interface_gpio_type    := GPIO_PUSH_PULL;
       ospeed         : t_interface_gpio_speed   := GPIO_LOW_SPEED;
-      af             : unsigned_32              := 0;
+      af             : unsigned_32 range 0 .. 15:= 0;
       bsr_r          : unsigned_32 range 0 .. 1 := 0;
       bsr_s          : unsigned_32 range 0 .. 1 := 0;
       lck            : unsigned_32 range 0 .. 1 := 0;

@@ -115,6 +115,7 @@ is
          -- Bytes (region size) is a power of 2
          pre    => ((bytes >= 32) and (bytes and (bytes - 1)) = 0),
          -- 4GB region size is not considered by this function
-         post   => region_size < 31;
+         post   => region_size < 31 and
+                   (2**(natural (region_size) + 1) = bytes);
 
 end ewok.mpu;
