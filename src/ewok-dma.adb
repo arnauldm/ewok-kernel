@@ -53,7 +53,8 @@ is
             return;
          end if;
       end loop;
-      success := false;
+      index    := registered_dma'first; -- dummy
+      success  := false;
    end get_registered_dma_entry;
 
 
@@ -151,7 +152,8 @@ is
      (index : in ewok.dma_shared.t_registered_dma_index)
    is
       -- Peripheral associated with the DMA stream
-      periph_id : constant soc.devmap.t_periph_id := registered_dma(index).periph_id;
+      periph_id : constant soc.devmap.t_periph_id :=
+         registered_dma(index).periph_id;
 
       -- DMAs have only one IRQ line per stream
       intr  : constant soc.interrupts.t_interrupt :=
@@ -557,6 +559,7 @@ is
         (interrupt, soc_dma_id, soc_stream_id, ok);
 
       if not ok then
+         status  := (others => false);
          success := false;
          return;
       end if;
@@ -565,6 +568,7 @@ is
                                    t_controller (soc_dma_id),
                                    t_stream (soc_stream_id))
       then
+         status  := (others => false);
          success := false;
          return;
       end if;

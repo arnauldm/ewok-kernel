@@ -23,7 +23,7 @@
 with soc.layout;
 
 
-package ewok.tasks.init
+package ewok.tasks.unproved
    with spark_mode => on
 is
 
@@ -64,4 +64,4 @@ is
 
 
 
-end ewok.tasks.init;
+end ewok.tasks.unproved;

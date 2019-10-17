@@ -77,13 +77,17 @@ is
       caller_id      : ewok.tasks_shared.t_task_id;
       to_configure   : ewok.exported.dma.t_config_mask;
       mode           : ewok.tasks_shared.t_task_mode)
-      return boolean;
+      return boolean
+      with
+         pre => caller_id /= ID_UNUSED;
 
    function sanitize_dma_shm
      (shm            : ewok.exported.dma.t_dma_shm_info;
       caller_id      : ewok.tasks_shared.t_task_id;
       mode           : ewok.tasks_shared.t_task_mode)
-      return boolean;
+      return boolean
+      with
+         pre => caller_id /= ID_UNUSED;
 
    procedure reconfigure_stream
      (user_config    : in out ewok.exported.dma.t_dma_user_config;
@@ -96,7 +100,11 @@ is
      (user_config    : in     ewok.exported.dma.t_dma_user_config;
       caller_id      : in     ewok.tasks_shared.t_task_id;
       index          : out    ewok.dma_shared.t_registered_dma_index;
-      success        : out    boolean);
+      success        : out    boolean)
+      with
+         post =>
+           (if success then
+               registered_dma(index).periph_id /= soc.devmap.NO_PERIPH);
 
    procedure init;
 

@@ -22,13 +22,11 @@
 
 
 with ewok.tasks;        use ewok.tasks;
-with ewok.tasks.init;
+with ewok.tasks.unproved;
 with ewok.debug;
-with ewok.devices;
-with ewok.exported.interrupts;
-with ewok.interrupts;
 with ewok.layout;
 with ewok.sched;
+with ewok.exported.interrupts;
 with soc.interrupts; use type soc.interrupts.t_interrupt;
 with soc.nvic;
 with m4.cpu;
@@ -139,7 +137,7 @@ is
       params(3) := req.params.posthook_status;
       params(4) := req.params.posthook_data;
 
-      ewok.tasks.init.create_stack
+      ewok.tasks.unproved.create_stack
         (ewok.layout.STACK_TOP_TASK_ISR,
          TSK.tasks_list(req.caller_id).isr_ctx.entry_point, -- Wrapper
          params,

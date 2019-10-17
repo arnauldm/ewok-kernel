@@ -29,6 +29,9 @@ is
 
    procedure svc_yield
      (caller_id   : in  ewok.tasks_shared.t_task_id;
-      mode        : in  ewok.tasks_shared.t_task_mode);
+      mode        : in  ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id /= ID_UNUSED;
+
 
 end ewok.syscalls.yield;

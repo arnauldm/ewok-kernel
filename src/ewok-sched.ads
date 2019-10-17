@@ -45,14 +45,23 @@ is
          inline;
 
    function task_elect return t_task_id
-      with global => (input => ewok.tasks.tasks_list);
-
-   procedure init;
+      with
+         global =>
+           (input => ewok.tasks.tasks_list);
 
    function pendsv_handler
      (frame_a : ewok.t_stack_frame_access)
       return ewok.t_stack_frame_access
-      with global => (input => ewok.tasks.tasks_list);
+      with
+         global =>
+           (input => ewok.tasks.tasks_list);
+
+   function systick_handler
+     (frame_a : ewok.t_stack_frame_access)
+      return ewok.t_stack_frame_access
+      with
+         global =>
+           (input => ewok.tasks.tasks_list);
 
    function do_schedule
      (frame_a : ewok.t_stack_frame_access)

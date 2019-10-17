@@ -33,7 +33,7 @@ with types.c;              use type types.c.t_retval;
 with applications; -- Automatically generated
 with sections;     -- Automatically generated
 
-package body ewok.tasks.init
+package body ewok.tasks.unproved
    with spark_mode => off
 is
 
@@ -374,4 +374,4 @@ is
 
    end task_init;
 
-end ewok.tasks.init;
+end ewok.tasks.unproved;

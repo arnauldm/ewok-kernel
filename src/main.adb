@@ -36,8 +36,8 @@ with ewok.exti;
 with ewok.interrupts;
 with ewok.memory;
 with ewok.softirq;
-with ewok.sched;
-with ewok.tasks.init;
+with ewok.sched.unproved;
+with ewok.tasks.unproved;
 
 
 procedure main
@@ -104,13 +104,13 @@ begin
    m4.cpu.instructions.full_memory_barrier;
 
    -- Create user tasks
-   ewok.tasks.init.task_init;
+   ewok.tasks.unproved.task_init;
 
    -- Initialize SOFTIRQ thread
    ewok.softirq.init;
 
    -- Let's run tasks!
-   ewok.sched.init;
+   ewok.sched.unproved.init;
 
    ewok.debug.panic ("Why am I here?");
 

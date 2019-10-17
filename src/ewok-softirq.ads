@@ -23,7 +23,10 @@
 
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.tasks;
+with ewok.interrupts;
+with ewok.devices;
 with soc.interrupts;
+with m4.scb;
 with rings;
 
 package ewok.softirq
@@ -47,6 +50,8 @@ is
    -- defaulting to 20 (see Kconfig)
    MAX_QUEUE_SIZE : constant := $CONFIG_KERNEL_SOFTIRQ_QUEUE_DEPTH;
 
+   previous_isr_owner : t_task_id := ID_UNUSED;
+
    package p_isr_requests is new rings
      (t_isr_request, MAX_QUEUE_SIZE, t_isr_request'(others => <>));
    use p_isr_requests;
@@ -60,13 +65,25 @@ is
       params      : in  t_isr_parameters);
 
    procedure isr_handler (req : in  t_isr_request)
-      with global => (in_out => ewok.tasks.tasks_list);
+      with
+         global =>
+           (input  =>
+              (ewok.interrupts.interrupt_table,
+               ewok.devices.registered_device),
+            in_out =>
+              (ewok.tasks.tasks_list,
+               previous_isr_owner));
 
    procedure main_task
-      with global => (in_out => ewok.tasks.tasks_list);
-
-private
-
-   previous_isr_owner : t_task_id := ID_UNUSED;
+      with
+         global =>
+           (input  =>
+              (ewok.interrupts.interrupt_table,
+               ewok.devices.registered_device),
+            in_out =>
+              (ewok.tasks.tasks_list,
+               isr_queue,
+               previous_isr_owner,
+               m4.scb.SCB));
 
 end ewok.softirq;
