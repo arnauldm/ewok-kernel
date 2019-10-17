@@ -26,8 +26,7 @@ with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.ipc;
 with ewok.exported.dma;
 with ewok.dma_shared;
-with soc;
-with soc.layout;
+with m4.mpu;
 
 
 package ewok.tasks
@@ -135,7 +134,7 @@ is
       ttype             : t_task_type     := TASK_TYPE_USER;
       mode              : t_task_mode     := TASK_MODE_MAINTHREAD;
       id                : ewok.tasks_shared.t_task_id := ID_UNUSED;
-      slot              : unsigned_8      := 0; -- 1: first slot (0: unused)
+      slot              : m4.mpu.t_subregion := m4.mpu.t_subregion'first;
       num_slots         : unsigned_8      := 0;
       prio              : unsigned_8      := 0;
 #if CONFIG_KERNEL_DOMAIN
@@ -165,7 +164,18 @@ is
       ipc_endpoint_id   : t_ipc_endpoint_id_list;
       ctx               : aliased t_main_context;
       isr_ctx           : aliased t_isr_context;
-   end record;
+   end record
+      with
+         dynamic_predicate => slot_in_bounds (slot, num_slots);
+
+   function slot_in_bounds
+     (slot : m4.mpu.t_subregion;
+      num_slots : unsigned_8)
+      return boolean
+   is
+     (num_slots <= m4.mpu.t_subregion'last and
+      num_slots + unsigned_8 (slot) - 1 <= m4.mpu.t_subregion'last);
+
 
    type t_task_array is array (t_task_id range <>) of aliased t_task;
 
@@ -188,36 +198,7 @@ is
    procedure idle_task with no_return;
    procedure finished_task with no_return;
 
-   -- create various task's stack
-   -- preconditions :
-   -- Here we check that generated headers, defining stack address and
-   -- program counter of various stack are valid for the currently
-   -- supported SoC. This is a sanitizing function for generated files.
-   procedure create_stack
-     (sp       : in  system_address;
-      pc       : in  system_address;
-      params   : in  ewok.t_parameters;
-      frame_a  : out ewok.t_stack_frame_access)
-      with
-         -- precondition 1 : stack pointer must be in RAM
-         pre =>
-           (
-            (sp >= soc.layout.USER_RAM_BASE and
-             sp <= (soc.layout.USER_RAM_BASE + soc.layout.USER_RAM_SIZE)) or
-            (sp >= soc.layout.KERNEL_RAM_BASE and
-             sp <= (soc.layout.KERNEL_RAM_BASE + soc.layout.KERNEL_RAM_SIZE))
-           ) and (
-         -- precondition 2 : program counter must be in flash
-            pc >= soc.layout.FLASH_BASE and
-            pc <= soc.layout.FLASH_BASE + soc.layout.FLASH_SIZE
-           ),
-         global => ( in_out => tasks_list );
-
    procedure set_default_values (tsk : out t_task);
-
-   procedure init_softirq_task;
-   procedure init_idle_task;
-   procedure init_apps;
 
    function is_real_user (id : ewok.tasks_shared.t_task_id) return boolean
       with inline_always;
@@ -225,58 +206,62 @@ is
 #if CONFIG_KERNEL_DOMAIN
    function get_domain (id : in ewok.tasks_shared.t_task_id)
       return unsigned_8
-   with inline;
+      with inline;
 #end if;
 
    function get_task_id (name : t_task_name)
-      return ewok.tasks_shared.t_task_id;
+      return ewok.tasks_shared.t_task_id
+      with global => (input => tasks_list);
 
    procedure set_state
      (id    : ewok.tasks_shared.t_task_id;
       mode  : t_task_mode;
       state : t_task_state)
-   with inline;
+      with
+         inline,
+         global => (in_out => tasks_list);
 
    function get_state
      (id    : ewok.tasks_shared.t_task_id;
       mode  : t_task_mode)
-   return t_task_state
-   with inline;
+      return t_task_state
+      with
+         inline,
+         global => (input => tasks_list);
 
    function get_mode
      (id     : in  ewok.tasks_shared.t_task_id)
-   return t_task_mode
-   with
-      inline,
-      global => null;
+      return t_task_mode
+      with
+         inline,
+         global => (input => tasks_list);
 
    procedure set_mode
      (id     : in   ewok.tasks_shared.t_task_id;
       mode   : in   ewok.tasks_shared.t_task_mode)
-   with
-      inline,
-      global => ( in_out => tasks_list );
+      with
+         inline,
+         global => (output => tasks_list);
 
    function is_ipc_waiting
      (id     : in  ewok.tasks_shared.t_task_id)
-      return boolean;
+      return boolean
+      with
+         global => (input => tasks_list);
 
-   -- Set return value inside a syscall
-   -- Note: mode must be defined as a task can do a syscall while in ISR mode
-   --       or in THREAD mode
    procedure set_return_value
      (id    : in  ewok.tasks_shared.t_task_id;
       mode  : in  t_task_mode;
       val   : in  unsigned_32)
-   with inline;
-
-   procedure task_init
-   with
-      global         => null;
+      with
+         inline,
+         global => (output => tasks_list);
 
    function is_init_done
      (id    : ewok.tasks_shared.t_task_id)
-      return boolean;
+      return boolean
+      with
+         global => (input => tasks_list);
 
    procedure append_device
      (id          : in  ewok.tasks_shared.t_task_id;
@@ -284,6 +269,7 @@ is
       descriptor  : out unsigned_8;
       success     : out boolean)
       with
+         global => (in_out => tasks_list),
          post => (if success = false then
                      descriptor = 0
                   else
@@ -292,21 +278,29 @@ is
 
    procedure remove_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  unsigned_8);
+      dev_descriptor : in  unsigned_8)
+      with
+         global => (output => tasks_list);
 
    function is_mounted
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  unsigned_8)
-      return boolean;
+      return boolean
+      with
+         global => (input => tasks_list);
 
    procedure mount_device
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  unsigned_8;
-      success        : out boolean);
+      success        : out boolean)
+      with
+         global => (output => tasks_list);
 
    procedure unmount_device
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  unsigned_8;
-      success        : out boolean);
+      success        : out boolean)
+      with
+         global => (output => tasks_list);
 
 end ewok.tasks;

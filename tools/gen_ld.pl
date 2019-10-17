@@ -75,7 +75,7 @@ is
 
    type t_application is record
       name         : ewok.tasks.t_task_name;
-      slot         : unsigned_8;
+      slot         : m4.mpu.t_subregion;
       domain       : unsigned_8;
       priority     : unsigned_8;
       num_slots    : unsigned_8;  -- How many slots are used
@@ -84,7 +84,18 @@ is
       stack_size   : unsigned_16;
       start_isr    : system_address;
       res_perm_reg : unsigned_32; -- ressources permission register
-   end record;
+   end record
+      with
+         dynamic_predicate => slot_in_bounds (slot, num_slots);
+
+   function slot_in_bounds
+     (slot : m4.mpu.t_subregion;
+      num_slots : unsigned_8)
+      return boolean
+   is
+     (num_slots <= m4.mpu.t_subregion'last and
+      num_slots + unsigned_8 (slot) - 1 <= m4.mpu.t_subregion'last);
+
 ";
 
   print $OUTHDR_ADA "

@@ -29,7 +29,6 @@ with ewok.gpio;
 
 with soc.gpio;
 with soc.usart;            use soc.usart;
-with soc.usart.interfaces;
 with soc.rcc;
 with soc.devmap;
 
@@ -48,7 +47,6 @@ package body ewok.debug
    with spark_mode => off
 is
 
-   kernel_usart_id   : soc.usart.interfaces.t_usart_id;
    TX_pin_config     : aliased ewok.exported.gpios.t_gpio_config;
 
    USART1_TX_pin_config : constant ewok.exported.gpios.t_gpio_config :=

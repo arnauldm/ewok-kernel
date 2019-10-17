@@ -25,14 +25,10 @@ with ada.unchecked_conversion;
 
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.tasks;           use type ewok.tasks.t_task_type;
-with ewok.devices;
 with ewok.layout;
-with ewok.mpu;
-with ewok.mpu.allocator;
-with ewok.debug;
 
 package body ewok.memory
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure init
@@ -46,20 +42,23 @@ is
    procedure map_code_and_data
      (id    : in  t_real_task_id)
    is
-      mask  : t_mask := (others => 1);
+      mask  : m4.mpu.t_subregion_mask :=
+                 (others => m4.mpu.SUB_REGION_DISABLED);
    begin
 
-      for i in 0 .. ewok.tasks.tasks_list(id).num_slots - 1 loop
-         mask(ewok.tasks.tasks_list(id).slot + i) := 0;
-      end loop;
+      if ewok.tasks.tasks_list(id).num_slots > 0 then
+         for i in 1 .. ewok.tasks.tasks_list(id).num_slots loop
+            mask(ewok.tasks.tasks_list(id).slot + i - 1) := m4.mpu.SUB_REGION_ENABLED;
+         end loop;
+      end if;
 
       ewok.mpu.update_subregions
         (region_number  => ewok.mpu.USER_CODE_REGION,
-         subregion_mask => to_unsigned_8 (mask));
+         subregion_mask => mask);
 
       ewok.mpu.update_subregions
         (region_number  => ewok.mpu.USER_DATA_REGION,
-         subregion_mask => to_unsigned_8 (mask));
+         subregion_mask => mask);
 
    end map_code_and_data;
 
@@ -69,11 +68,11 @@ is
    begin
       ewok.mpu.update_subregions
         (region_number  => ewok.mpu.USER_CODE_REGION,
-         subregion_mask => 2#1111_1111#);
+         subregion_mask => (others => m4.mpu.SUB_REGION_DISABLED));
 
       ewok.mpu.update_subregions
         (region_number  => ewok.mpu.USER_DATA_REGION,
-         subregion_mask => 2#1111_1111#);
+         subregion_mask => (others => m4.mpu.SUB_REGION_DISABLED));
    end unmap_user_code_and_data;
 
 
@@ -147,6 +146,10 @@ is
          return;
       end if;
 
+      -- FIXME - We should prove that ewok.tasks.TASK_TYPE_KERNEL
+      -- never apply to "real" user tasks (t_real_task_id)
+      pragma assume (id in applications.t_real_task_id'range);
+
       -- Mapping ISR device and ISR stack
       if new_task.mode = TASK_MODE_ISRTHREAD then
 
@@ -155,7 +158,7 @@ is
            (addr           => ewok.layout.STACK_BOTTOM_TASK_ISR,
             size           => 4096,
             region_type    => ewok.mpu.REGION_TYPE_ISR_STACK,
-            subregion_mask => 0,
+            subregion_mask => (others => m4.mpu.SUB_REGION_ENABLED),
             success        => ok);
 
          if not ok then

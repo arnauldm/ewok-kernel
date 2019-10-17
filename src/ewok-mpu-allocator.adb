@@ -37,25 +37,40 @@ is
    end free_region_exist;
 
 
+   function is_power_of_2 (n : unsigned_32)
+      return boolean
+   is
+   begin
+      -- True if n and (n-1) have no bit in common
+      return (n and n - 1) = 0;
+   end is_power_of_2;
+
+
    procedure map_in_pool
      (addr           : in  system_address;
       size           : in  unsigned_32; -- in bytes
       region_type    : in  ewok.mpu.t_region_type;
-      subregion_mask : in  unsigned_8;
+      subregion_mask : in  m4.mpu.t_subregion_mask;
       success        : out boolean)
    is
       region_size    : m4.mpu.t_region_size;
       ok             : boolean;
    begin
 
-      ewok.mpu.bytes_to_region_size (size, region_size, ok);
-      if not ok then
+      -- Verifying that size is a power of 2 and is > 32
+      if size < 32 or not is_power_of_2 (size) then
          success := false;
          return;
       end if;
 
       -- Verifying region alignement
       if (unsigned_32 (addr) and (size - 1)) > 0 then
+         success := false;
+         return;
+      end if;
+
+      ewok.mpu.bytes_to_region_size (size, region_size, ok);
+      if not ok then
          success := false;
          return;
       end if;

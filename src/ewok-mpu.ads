@@ -86,7 +86,7 @@ is
       addr           : in  system_address;
       size           : in  m4.mpu.t_region_size;
       region_type    : in  t_region_type;
-      subregion_mask : in  unsigned_8)
+      subregion_mask : in  m4.mpu.t_subregion_mask)
       with
          global => (in_out => (m4.mpu.MPU)),
          pre =>
@@ -102,7 +102,7 @@ is
 
    procedure update_subregions
      (region_number  : in  m4.mpu.t_region_number;
-      subregion_mask : in  unsigned_8)
+      subregion_mask : in  m4.mpu.t_subregion_mask)
       with
          global => (in_out => (m4.mpu.MPU));
 

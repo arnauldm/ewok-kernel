@@ -26,6 +26,7 @@ with ewok.exported.devices;
 with ewok.exported.interrupts;
 with soc.interrupts;
 with soc.devmap;
+with m4.mpu;
 
 package ewok.devices
    with spark_mode => on
@@ -70,7 +71,7 @@ is
       return boolean;
 
    function get_device_subregions_mask (dev_id : t_registered_device_id)
-      return unsigned_8;
+      return m4.mpu.t_subregion_mask;
 
    function get_device_map_mode (dev_id : t_registered_device_id)
       return ewok.exported.devices.t_dev_map_mode;

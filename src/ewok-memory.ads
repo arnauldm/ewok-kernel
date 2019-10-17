@@ -21,20 +21,20 @@
 --
 
 
-with ewok.tasks;
+with applications;      use applications; -- generated
 with ewok.tasks_shared; use ewok.tasks_shared;
+with ewok.tasks;
 with ewok.devices_shared;
-with applications; use applications; -- generated
+with ewok.devices;
+with ewok.mpu;
+with ewok.mpu.allocator;
+with ewok.debug;
+with m4.mpu;
+with soc.usart;
 
 package ewok.memory
    with spark_mode => on
 is
-
-   type t_mask is array (unsigned_8 range 1 .. 8) of bit
-      with pack, size => 8;
-
-   function to_unsigned_8 is new ada.unchecked_conversion
-      (t_mask, unsigned_8);
 
    -- Initialize the memory backend
    procedure init
@@ -45,7 +45,8 @@ is
      (id : in  t_real_task_id)
       with
          inline,
-         global => (input => ewok.tasks.tasks_list);
+         global => (input  => ewok.tasks.tasks_list,
+                    in_out => (m4.mpu.MPU));
 
    -- Unmap the overall userspace content
    procedure unmap_user_code_and_data
@@ -68,12 +69,25 @@ is
       with inline;
 
    procedure unmap_all_devices
-      with inline;
+      with
+         inline,
+         global => (in_out => m4.mpu.MPU,
+                    output => ewok.mpu.allocator.regions_pool);
 
    -- Map the whole task (code, data and related devices) in memory
    procedure map_task (id : in t_task_id)
       with
          inline,
-         global => (input => ewok.tasks.tasks_list);
+         pre    => id in applications.t_real_task_id'range or
+                   id = ID_SOFTIRQ or
+                   id = ID_KERNEL,
+         global => (input  => (ewok.tasks.tasks_list,
+                               ewok.devices.registered_device,
+                               ewok.debug.kernel_usart_id),
+                    in_out => (m4.mpu.MPU,
+                               soc.usart.usart1,
+                               soc.usart.uart4,
+                               soc.usart.usart6),
+                    output => ewok.mpu.allocator.regions_pool);
 
 end ewok.memory;

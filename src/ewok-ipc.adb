@@ -24,7 +24,7 @@
 with ada.unchecked_conversion;
 
 package body ewok.ipc
-   with spark_mode => off
+   with spark_mode => on
 is
 
    function to_task_id

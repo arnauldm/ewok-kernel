@@ -20,9 +20,13 @@
 --
 --
 
+with soc.usart.interfaces;
+
 package ewok.debug
    with spark_mode => on
 is
+
+   kernel_usart_id   : soc.usart.interfaces.t_usart_id;
 
    type t_level is (DEBUG, INFO, WARNING, ERROR, ALERT);
 

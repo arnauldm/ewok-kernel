@@ -85,7 +85,7 @@ is
          addr           => applications.txt_kern_region_base,
          size           => REGION_SIZE_64KB,
          region_type    => REGION_TYPE_KERN_CODE,
-         subregion_mask => 0);
+         subregion_mask => (others => SUB_REGION_ENABLED));
 
       -- Region: devices that may be accessed by the kernel
       set_region
@@ -93,7 +93,7 @@ is
          addr           => soc.layout.PERIPH_BASE,
          size           => REGION_SIZE_512MB,
          region_type    => REGION_TYPE_KERN_DEVICES,
-         subregion_mask => 0);
+         subregion_mask => (others => SUB_REGION_ENABLED));
 
       -- Region: kernel data + stack
       if get_region_size (REGION_SIZE_64KB) /= ewok.layout.KERN_DATA_SIZE then
@@ -107,7 +107,7 @@ is
          addr           => ewok.layout.KERN_DATA_BASE,
          size           => REGION_SIZE_64KB,
          region_type    => REGION_TYPE_KERN_DATA,
-         subregion_mask => 0);
+         subregion_mask => (others => SUB_REGION_ENABLED));
 
       -- Region: user data
       -- Note: This is for the whole area. Each task will use only a fixed
@@ -122,7 +122,7 @@ is
          addr           => ewok.layout.USER_DATA_BASE,
          size           => REGION_SIZE_128KB,
          region_type    => REGION_TYPE_USER_DATA,
-         subregion_mask => 0);
+         subregion_mask => (others => SUB_REGION_ENABLED));
 
       -- Region: user code
       -- Note: This is for the whole area. Each task will use only a fixed
@@ -137,7 +137,7 @@ is
          addr           => applications.txt_user_region_base,
          size           => applications.txt_user_region_size,
          region_type    => REGION_TYPE_USER_CODE,
-         subregion_mask => 0);
+         subregion_mask => (others => SUB_REGION_ENABLED));
 
       pragma DEBUG (debug.log (debug.INFO, "MPU is configured"));
       m4.mpu.enable;
@@ -159,7 +159,7 @@ is
       addr           : in  system_address;
       size           : in  m4.mpu.t_region_size;
       region_type    : in  t_region_type;
-      subregion_mask : in  unsigned_8)
+      subregion_mask : in  m4.mpu.t_subregion_mask)
    is
       access_perm    : m4.mpu.t_region_perm;
       xn, b, s       : boolean;
@@ -234,7 +234,7 @@ is
 
    procedure update_subregions
      (region_number  : in  m4.mpu.t_region_number;
-      subregion_mask : in  unsigned_8)
+      subregion_mask : in  m4.mpu.t_subregion_mask)
    is
    begin
       m4.mpu.update_subregion_mask (region_number, subregion_mask);
