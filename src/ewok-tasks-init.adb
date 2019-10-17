@@ -80,6 +80,56 @@ is
    end create_stack;
 
 
+   procedure set_default_values (tsk : out t_task)
+   is
+   begin
+      tsk.name              := "          ";
+      tsk.entry_point       := 0;
+      tsk.ttype             := TASK_TYPE_USER;
+      tsk.mode              := TASK_MODE_MAINTHREAD;
+      tsk.id                := ID_UNUSED;
+      tsk.slot              := m4.mpu.t_subregion'first;
+      tsk.num_slots         := 0;
+      tsk.prio              := 0;
+
+#if CONFIG_KERNEL_DOMAIN
+      tsk.domain            := 0;
+#end if;
+
+#if CONFIG_KERNEL_SCHED_DEBUG
+      tsk.count             := 0;
+      tsk.force_count       := 0;
+      tsk.isr_count         := 0;
+#end if;
+
+      tsk.num_dma_shms      := 0;
+      tsk.dma_shm           :=
+        (others => ewok.exported.dma.t_dma_shm_info'
+           (granted_id  => ID_UNUSED,
+            accessed_id => ID_UNUSED,
+            base        => 0,
+            size        => 0,
+            access_type => ewok.exported.dma.SHM_ACCESS_READ));
+
+      tsk.num_dma_id        := 0;
+      tsk.dma_id            := (others => ewok.dma_shared.ID_DMA_UNUSED);
+
+      tsk.num_devs          := 0;
+      tsk.devices           := (others => (ewok.devices_shared.ID_DEV_UNUSED, false));
+      tsk.init_done         := false;
+      tsk.data_slot_start   := 0;
+      tsk.data_slot_end     := 0;
+      tsk.txt_slot_start    := 0;
+      tsk.txt_slot_end      := 0;
+      tsk.stack_size        := 0;
+      tsk.state             := TASK_STATE_EMPTY;
+      tsk.isr_state         := TASK_STATE_EMPTY;
+      tsk.ipc_endpoint_id   := (others => ID_ENDPOINT_UNUSED);
+      tsk.ctx.frame_a       := NULL;
+      tsk.isr_ctx           := t_isr_context'(0, ID_DEV_UNUSED, ISR_STANDARD, NULL);
+   end set_default_values;
+
+
    procedure init_softirq_task
    is
       params : constant t_parameters := (others => 0);
@@ -219,13 +269,14 @@ is
          tasks_list(id).ttype := TASK_TYPE_USER;
          tasks_list(id).id    := id;
 
-         tasks_list(id).slot      := applications.list(id).slot;
-
-         if applications.list(id).slot + applications.list(id).num_slots >
-            m4.mpu.t_subregion'last
+         if unsigned_8 (applications.list(id).slot)
+               + applications.list(id).num_slots
+               - 1 > m4.mpu.t_subregion'last
          then
             raise program_error;
          end if;
+
+         tasks_list(id).slot      := applications.list(id).slot;
          tasks_list(id).num_slots := applications.list(id).num_slots;
 
          tasks_list(id).prio  := applications.list(id).priority;

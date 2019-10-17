@@ -26,6 +26,8 @@ with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.ipc;
 with ewok.exported.dma;
 with ewok.dma_shared;
+with ewok.mpu.allocator;
+with ewok.devices;
 with m4.mpu;
 
 
@@ -121,7 +123,8 @@ is
       mounted     : boolean                           := false;
    end record;
 
-   type t_device_list is array (unsigned_8 range <>) of t_device;
+   subtype t_device_descriptor is unsigned_8 range 1 .. MAX_DEVS_PER_TASK;
+   type t_device_list is array (t_device_descriptor) of t_device;
 
    type t_ipc_endpoint_id_list is array (ewok.tasks_shared.t_task_id) of
       ewok.ipc.t_extended_endpoint_id
@@ -150,7 +153,7 @@ is
       num_dma_id        : unsigned_32 range 0 .. MAX_DMAS_PER_TASK      := 0;
       dma_id            : t_registered_dma_index_list (1 .. MAX_DMAS_PER_TASK);
       num_devs          : unsigned_8 range 0 .. MAX_DEVS_PER_TASK       := 0;
-      devices           : t_device_list (1 .. MAX_DEVS_PER_TASK);
+      devices           : t_device_list;
       init_done         : boolean         := false;
       data_slot_start   : system_address  := 0;
       data_slot_end     : system_address  := 0;
@@ -198,8 +201,6 @@ is
    procedure idle_task with no_return;
    procedure finished_task with no_return;
 
-   procedure set_default_values (tsk : out t_task);
-
    function is_real_user (id : ewok.tasks_shared.t_task_id) return boolean
       with inline_always;
 
@@ -211,7 +212,8 @@ is
 
    function get_task_id (name : t_task_name)
       return ewok.tasks_shared.t_task_id
-      with global => (input => tasks_list);
+      with
+         global => (input => tasks_list);
 
    procedure set_state
      (id    : ewok.tasks_shared.t_task_id;
@@ -219,6 +221,7 @@ is
       state : t_task_state)
       with
          inline,
+         pre    => id /= ID_UNUSED,
          global => (in_out => tasks_list);
 
    function get_state
@@ -227,6 +230,7 @@ is
       return t_task_state
       with
          inline,
+         pre    => id /= ID_UNUSED,
          global => (input => tasks_list);
 
    function get_mode
@@ -234,6 +238,7 @@ is
       return t_task_mode
       with
          inline,
+         pre    => id /= ID_UNUSED,
          global => (input => tasks_list);
 
    procedure set_mode
@@ -241,13 +246,15 @@ is
       mode   : in   ewok.tasks_shared.t_task_mode)
       with
          inline,
-         global => (output => tasks_list);
+         pre    => id /= ID_UNUSED,
+         global => (in_out => tasks_list);
 
    function is_ipc_waiting
      (id     : in  ewok.tasks_shared.t_task_id)
       return boolean
       with
-         global => (input => tasks_list);
+         pre    => id /= ID_UNUSED,
+         global => (input => (tasks_list, ewok.ipc.ipc_endpoints));
 
    procedure set_return_value
      (id    : in  ewok.tasks_shared.t_task_id;
@@ -255,12 +262,19 @@ is
       val   : in  unsigned_32)
       with
          inline,
-         global => (output => tasks_list);
+         pre    =>
+            id /= ID_UNUSED and then
+            (if mode = TASK_MODE_MAINTHREAD then
+                tasks_list(id).ctx.frame_a /= null
+             else
+               tasks_list(id).isr_ctx.frame_a /= null),
+         global => (in_out => tasks_list);
 
    function is_init_done
      (id    : ewok.tasks_shared.t_task_id)
       return boolean
       with
+         pre    => id /= ID_UNUSED,
          global => (input => tasks_list);
 
    procedure append_device
@@ -270,37 +284,52 @@ is
       success     : out boolean)
       with
          global => (in_out => tasks_list),
+         pre    => id /= ID_UNUSED,
          post => (if success = false then
                      descriptor = 0
                   else
-                     descriptor > 0 and
-                     descriptor < tasks_list(id).devices'last);
+                     descriptor in t_device_descriptor);
 
    procedure remove_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  unsigned_8)
+      dev_descriptor : in  t_device_descriptor)
       with
-         global => (output => tasks_list);
+         pre    => id /= ID_UNUSED and then
+                   tasks_list(id).num_devs >= 1,
+         global => (in_out => tasks_list);
 
    function is_mounted
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  unsigned_8)
+      dev_descriptor : in  t_device_descriptor)
       return boolean
       with
+         pre    => id /= ID_UNUSED,
          global => (input => tasks_list);
 
    procedure mount_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  unsigned_8;
+      dev_descriptor : in  t_device_descriptor;
       success        : out boolean)
       with
-         global => (output => tasks_list);
+         pre    => id /= ID_UNUSED,
+         global =>
+           (input => ewok.devices.registered_device,
+            in_out =>
+              (tasks_list,
+               ewok.mpu.allocator.regions_pool,
+               m4.mpu.MPU));
 
    procedure unmount_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  unsigned_8;
+      dev_descriptor : in  t_device_descriptor;
       success        : out boolean)
       with
-         global => (output => tasks_list);
+         pre    => id /= ID_UNUSED,
+         global =>
+           (input => ewok.devices.registered_device,
+            in_out =>
+              (tasks_list,
+               ewok.mpu.allocator.regions_pool,
+               m4.mpu.MPU));
 
 end ewok.tasks;

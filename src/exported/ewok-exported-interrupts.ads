@@ -99,8 +99,8 @@ is
    end record;
 
    type t_interrupt_config is record
-      handler     : system_address := 0;
-      interrupt   : soc.interrupts.t_interrupt                 := soc.interrupts.INT_NONE;
+      handler     : system_address              := 0;
+      interrupt   : soc.interrupts.t_interrupt  := soc.interrupts.INT_NONE;
       mode        : ewok.tasks_shared.t_scheduling_post_isr;
       posthook    : t_interrupt_posthook;
    end record;

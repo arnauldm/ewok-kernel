@@ -24,7 +24,7 @@ with soc.layout;
 
 
 package ewok.tasks.init
-   with spark_mode => off
+   with spark_mode => on
 is
 
    -- create various task's stack
@@ -50,7 +50,10 @@ is
             pc >= soc.layout.FLASH_BASE and
             pc <= soc.layout.FLASH_BASE + soc.layout.FLASH_SIZE
            ),
+         post => frame_a /= NULL,
          global => ( in_out => tasks_list );
+
+   procedure set_default_values (tsk : out t_task);
 
    procedure init_softirq_task;
    procedure init_idle_task;
