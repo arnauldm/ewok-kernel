@@ -41,8 +41,8 @@ is
       procedure (frame_a : in ewok.t_stack_frame_access);
 
    type t_interrupt_task_switch_handler_access is access
-      function (frame_a : ewok.t_stack_frame_access)
-         return ewok.t_stack_frame_access;
+      procedure (frame_a      : in ewok.t_stack_frame_access;
+                 new_frame_a  : out ewok.t_stack_frame_access);
 
    function exec_handler is new ada.unchecked_conversion
      (system_address, t_interrupt_handler_access);
@@ -51,43 +51,46 @@ is
      (system_address, t_interrupt_task_switch_handler_access);
 
 
-   function busfault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access
+   procedure busfault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access)
    is
    begin
       pragma DEBUG (ewok.tasks.debug.crashdump (frame_a));
       debug.panic ("Bus fault!");
-      return frame_a;
+      new_frame_a := frame_a;
    end busfault_handler;
 
 
-   function usagefault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access
+   procedure usagefault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access)
    is
    begin
       pragma DEBUG (ewok.tasks.debug.crashdump (frame_a));
       debug.panic ("Usage fault!");
-      return frame_a;
+      new_frame_a := frame_a;
    end usagefault_handler;
 
 
-   function hardfault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access
+   procedure hardfault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access)
    is
    begin
       pragma DEBUG (ewok.tasks.debug.crashdump (frame_a));
       debug.panic ("Hard fault!");
-      return frame_a;
+      new_frame_a := frame_a;
    end hardfault_handler;
 
 
-   function systick_default_handler
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure systick_default_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access)
    is
    begin
       m4.systick.increment;
-      return frame_a;
+      new_frame_a := frame_a;
    end systick_default_handler;
 
 
@@ -110,8 +113,8 @@ is
          -- System exceptions
          if it < INT_WWDG then
             if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL then
-               new_frame_a :=
-                  exec_switching_handler (interrupt_table(it).handler) (frame_a);
+               exec_switching_handler
+                 (interrupt_table(it).handler) (frame_a, new_frame_a);
             else
                debug.panic ("Unhandled exception " & t_interrupt'image (it));
             end if;
@@ -128,7 +131,7 @@ is
                  (it,
                   interrupt_table(it).handler,
                   interrupt_table(it).task_id);
-               new_frame_a := ewok.sched.do_schedule (frame_a);
+               ewok.sched.do_schedule (frame_a, new_frame_a);
             else
                pragma DEBUG (debug.log (debug.ALERT,
                   "Unhandled interrupt " & t_interrupt'image (it)));
@@ -168,9 +171,8 @@ is
                when others      =>
                   if interrupt_table(it).task_id = ewok.tasks_shared.ID_KERNEL
                   then
-                     new_frame_a :=
-                        exec_switching_handler (interrupt_table(it).handler)
-                           (frame_a);
+                     exec_switching_handler (interrupt_table(it).handler)
+                        (frame_a, new_frame_a);
                   else
                      debug.panic
                        ("Unhandled exception " & t_interrupt'image (it));

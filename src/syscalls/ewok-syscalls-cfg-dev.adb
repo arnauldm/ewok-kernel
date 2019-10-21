@@ -168,7 +168,6 @@ is
       dev_descriptor : unsigned_8
          with address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
-      ok             : boolean;
    begin
 
       --
@@ -240,18 +239,8 @@ is
          goto ret_denied;
       end if;
 
-      --
       -- Unmapping the device
-      --
-
-      TSK.unmount_device (caller_id, dev_descriptor, ok);
-
-      if not ok then
-         pragma DEBUG (debug.log (debug.ERROR,
-            ewok.tasks.tasks_list(caller_id).name
-            & ": dev_unmap(): device is not mapped"));
-         goto ret_denied;
-      end if;
+      TSK.unmount_device (caller_id, dev_descriptor);
 
       set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
@@ -322,10 +311,7 @@ is
 
       -- Unmounting the device
       if TSK.is_mounted (caller_id, dev_descriptor) then
-         TSK.unmount_device (caller_id, dev_descriptor, ok);
-         if not ok then
-            raise program_error; -- Should never happen
-         end if;
+         TSK.unmount_device (caller_id, dev_descriptor);
       end if;
 
       -- Removing it from the task's list of used devices

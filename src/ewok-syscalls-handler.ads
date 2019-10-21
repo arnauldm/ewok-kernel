@@ -24,7 +24,7 @@
 package ewok.syscalls.handler
    with spark_mode => on
 is
-   function svc_handler
-     (frame_a : t_stack_frame_access)
-      return t_stack_frame_access;
+   procedure svc_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 end ewok.syscalls.handler;

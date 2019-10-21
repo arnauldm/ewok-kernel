@@ -243,11 +243,9 @@ is
 
    procedure bytes_to_region_size
      (bytes       : in  unsigned_32;
-      region_size : out m4.mpu.t_region_size;
-      success     : out boolean)
+      region_size : out m4.mpu.t_region_size)
    is
    begin
-      success := true;
       case (bytes) is
          when 32        => region_size := REGION_SIZE_32B;
          when 64        => region_size := REGION_SIZE_64B;
@@ -277,8 +275,7 @@ is
          when 1*GBYTE   => region_size := REGION_SIZE_1GB;
          when 2*GBYTE   => region_size := REGION_SIZE_2GB;
          when others    =>
-            region_size := REGION_SIZE_32B;
-            success     := false;
+            raise program_error;
       end case;
    end bytes_to_region_size;
 

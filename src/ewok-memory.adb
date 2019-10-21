@@ -99,18 +99,18 @@ is
       if not success then
          pragma DEBUG
            (debug.log ("mpu_mapping_device(): can not be mapped"));
+         raise program_error;
       end if;
 
    end map_device;
 
 
    procedure unmap_device
-     (dev_id   : in  ewok.devices_shared.t_registered_device_id;
-      success  : out boolean)
+     (dev_id   : in  ewok.devices_shared.t_registered_device_id)
    is
    begin
       ewok.mpu.allocator.unmap_from_pool
-        (ewok.devices.get_device_addr (dev_id), success);
+        (ewok.devices.get_device_addr (dev_id));
    end unmap_device;
 
 

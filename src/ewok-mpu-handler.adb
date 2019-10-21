@@ -34,13 +34,10 @@ package body ewok.mpu.handler
    with spark_mode => off
 is
 
-   function memory_fault_handler
-     (frame_a : t_stack_frame_access)
-      return t_stack_frame_access
+   procedure memory_fault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access)
    is
-#if CONFIG_KERNEL_PANIC_FAULT
-      new_frame_a : t_stack_frame_access;
-#end if;
    begin
       pragma DEBUG (ewok.tasks.debug.crashdump (frame_a));
 
@@ -51,17 +48,19 @@ is
 
 #if CONFIG_KERNEL_PANIC_FAULT
       if (ewok.tasks.is_real_user(ewok.sched.current_task_id)) then
-         new_frame_a := ewok.sched.do_schedule (frame_a);
-         return new_frame_a;
+         ewok.sched.do_schedule (frame_a, new_frame_a);
+         return;
       else
          -- panic happen in a kernel task (softirq...)
          debug.panic ("Memory fault!");
-         return frame_a;
+         new_frame_a := frame_a;
+         return;
       end if;
 #else
       -- leave the panic function handling the other panic actions
       debug.panic ("Memory fault!");
-      return frame_a;
+      new_frame_a := frame_a;
+      return;
 #end if;
 
    end memory_fault_handler;

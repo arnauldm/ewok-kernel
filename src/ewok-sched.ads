@@ -20,9 +20,17 @@
 --
 --
 
-with ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
+with ewok.tasks;
+with ewok.sleep;
+with ewok.devices;
+with ewok.mpu.allocator;
+with ewok.debug;
 with applications;
+with m4.systick;
+with m4.mpu;
+with soc.dwt;
+with soc.usart;
 
 package ewok.sched
    with spark_mode => on
@@ -44,28 +52,60 @@ is
       with
          inline;
 
-   function task_elect return t_task_id
+   procedure task_elect
+     (elected : out t_task_id)
       with
          global =>
-           (input => ewok.tasks.tasks_list);
+           (input  => (ewok.sleep.awakening_time,
+                       m4.systick.ticks),
+            in_out => (ewok.tasks.tasks_list,
+                       last_main_user_task_id));
 
-   function pendsv_handler
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure pendsv_handler
+     (frame_a     : in ewok.t_stack_frame_access;
+      new_frame_a : out ewok.t_stack_frame_access)
       with
          global =>
-           (input => ewok.tasks.tasks_list);
+           (input  => (ewok.sleep.awakening_time,
+                       ewok.devices.registered_device,
+                       ewok.debug.kernel_usart_id,
+                       m4.systick.ticks),
+            in_out => (ewok.tasks.tasks_list,
+                       last_main_user_task_id,
+                       current_task_id,
+                       current_task_mode,
+                       m4.mpu.MPU,
+                       soc.usart.usart1,
+                       soc.usart.uart4,
+                       soc.usart.usart6),
+            output => ewok.mpu.allocator.regions_pool);
 
-   function systick_handler
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure systick_handler
+     (frame_a     : in ewok.t_stack_frame_access;
+      new_frame_a : out ewok.t_stack_frame_access)
       with
          global =>
-           (input => ewok.tasks.tasks_list);
+           (input  => (ewok.sleep.awakening_time,
+                       ewok.devices.registered_device,
+                       ewok.debug.kernel_usart_id),
+            in_out => (ewok.tasks.tasks_list,
+                       last_main_user_task_id,
+                       current_task_id,
+                       current_task_mode,
+                       m4.systick.ticks,
+                       m4.mpu.MPU,
+                       soc.dwt.DWT_CYCCNT,
+                       sched_period,
+                       soc.dwt.dwt_loops,
+                       soc.dwt.last_dwt,
+                       soc.usart.usart1,
+                       soc.usart.uart4,
+                       soc.usart.usart6),
+            output => ewok.mpu.allocator.regions_pool);
 
-   function do_schedule
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure do_schedule
+     (frame_a     : in ewok.t_stack_frame_access;
+      new_frame_a : out ewok.t_stack_frame_access)
       renames pendsv_handler;
 
 end ewok.sched;

@@ -265,8 +265,7 @@ is
 
    procedure unmount_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  t_device_descriptor;
-      success        : out boolean)
+      dev_descriptor : in  t_device_descriptor)
    is
    begin
 
@@ -282,7 +281,7 @@ is
 
       -- Unmapping the device
       ewok.memory.unmap_device
-        (tasks_list(id).devices(dev_descriptor).device_id, success);
+        (tasks_list(id).devices(dev_descriptor).device_id);
 
       tasks_list(id).devices(dev_descriptor).mounted := false;
    end unmount_device;

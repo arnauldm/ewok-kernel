@@ -28,75 +28,6 @@ is
 
    pragma assertion_policy (pre => IGNORE, post => IGNORE, assert => IGNORE);
 
-   -----------------------------------------------------
-   -- SPARK ghost functions and procedures
-   -----------------------------------------------------
-
-   function init_is_done return boolean;
-
-
-   function check_32bits_overflow return boolean
-      with ghost;
-
-   --------------------------------------------------
-   -- The Data Watchpoint and Trace unit (DWT)     --
-   -- (Cf. ARMv7-M Arch. Ref. Manual, C1.8, p.779) --
-   --------------------------------------------------
-
-   -- Reset the DWT-based timer
-   procedure reset_timer
-      with
-         pre      => not init_is_done;
-
-   -- Start the DWT timer. The register is counting the number of CPU cycles
-   procedure start_timer
-      with
-         pre      => not init_is_done;
-
-   -- Stop the DWT timer
-   procedure stop_timer
-      with
-        pre       => init_is_done;
-
-   -- Periodically check the DWT CYCCNT register for overflow. This permit
-   -- to detect each time an overflow happends and increment the
-   -- overflow counter to keep a valid 64 bit time value
-   -- precondition check that the package has been initialized and that
-   -- dwt_loop doesn't overflow
-   procedure ovf_manage
-      with
-         --pre => check_32bits_overflow,
-         inline_always;
-
-   -- Initialize the DWT module
-   procedure init
-      with
-         pre      => not init_is_done;
-
-   -- Get the DWT timer (without overflow support, keep a 32bit value)
-   procedure get_cycles_32(cycles : out unsigned_32)
-      with
-         inline,
-         pre      => init_is_done;
-
-   -- Get the DWT timer with overflow support. permits linear measurement
-   -- on 64 bits cycles time window (approx. 1270857 days)
-   procedure get_cycles (cycles : out unsigned_64)
-      with
-         pre      => init_is_done;
-
-   procedure get_microseconds (micros : out unsigned_64)
-      with
-         inline,
-         pre      => init_is_done;
-
-   procedure get_milliseconds (milli : out unsigned_64)
-      with
-         inline,
-         pre      => init_is_done;
-
-private
-
    --
    -- Control register
    --
@@ -268,5 +199,72 @@ private
       with import,
            volatile,
            address => system'to_address (16#E000_EDFC#);
+
+   -----------------------------------------------------
+   -- SPARK ghost functions and procedures
+   -----------------------------------------------------
+
+   function init_is_done return boolean;
+
+
+   function check_32bits_overflow return boolean
+      with ghost;
+
+   --------------------------------------------------
+   -- The Data Watchpoint and Trace unit (DWT)     --
+   -- (Cf. ARMv7-M Arch. Ref. Manual, C1.8, p.779) --
+   --------------------------------------------------
+
+   -- Reset the DWT-based timer
+   procedure reset_timer
+      with
+         pre      => not init_is_done;
+
+   -- Start the DWT timer. The register is counting the number of CPU cycles
+   procedure start_timer
+      with
+         pre      => not init_is_done;
+
+   -- Stop the DWT timer
+   procedure stop_timer
+      with
+        pre       => init_is_done;
+
+   -- Periodically check the DWT CYCCNT register for overflow. This permit
+   -- to detect each time an overflow happends and increment the
+   -- overflow counter to keep a valid 64 bit time value
+   -- precondition check that the package has been initialized and that
+   -- dwt_loop doesn't overflow
+   procedure ovf_manage
+      with
+         --pre => check_32bits_overflow,
+         inline_always;
+
+   -- Initialize the DWT module
+   procedure init
+      with
+         pre      => not init_is_done;
+
+   -- Get the DWT timer (without overflow support, keep a 32bit value)
+   procedure get_cycles_32(cycles : out unsigned_32)
+      with
+         inline,
+         pre      => init_is_done;
+
+   -- Get the DWT timer with overflow support. permits linear measurement
+   -- on 64 bits cycles time window (approx. 1270857 days)
+   procedure get_cycles (cycles : out unsigned_64)
+      with
+         pre      => init_is_done;
+
+   procedure get_microseconds (micros : out unsigned_64)
+      with
+         inline,
+         pre      => init_is_done;
+
+   procedure get_milliseconds (milli : out unsigned_64)
+      with
+         inline,
+         pre      => init_is_done;
 
 end soc.dwt;

@@ -321,8 +321,7 @@ is
 
    procedure unmount_device
      (id             : in  ewok.tasks_shared.t_task_id;
-      dev_descriptor : in  t_device_descriptor;
-      success        : out boolean)
+      dev_descriptor : in  t_device_descriptor)
       with
          pre    => id /= ID_UNUSED,
          global =>

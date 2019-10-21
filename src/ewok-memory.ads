@@ -64,8 +64,7 @@ is
       with inline;
 
    procedure unmap_device
-     (dev_id   : in  ewok.devices_shared.t_registered_device_id;
-      success  : out boolean)
+     (dev_id   : in  ewok.devices_shared.t_registered_device_id)
       with inline;
 
    procedure unmap_all_devices

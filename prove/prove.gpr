@@ -24,6 +24,7 @@ project Prove is
    package Prove is
       for Proof_Switches ("Ada") use
         ("-j0",         -- will use all cores of the machine
+         "-k",          -- Do not stop analysis at the first error
          "--steps=0",   -- maximum number of proof steps (0 = unlimited)
          "--level=4",
          "--proof=per_check",

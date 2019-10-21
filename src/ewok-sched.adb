@@ -26,9 +26,7 @@ with ewok.tasks;           use ewok.tasks;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.sleep;           use type ewok.sleep.t_sleeping_state;
 with ewok.memory;
-with soc.dwt;
 with m4.scb;
-with m4.systick;
 
 
 package body ewok.sched
@@ -59,10 +57,9 @@ is
    end request_schedule;
 
 
-   function task_elect
-      return t_task_id
+   procedure task_elect
+     (elected : out t_task_id)
    is
-      elected  : t_task_id;
       state    : ewok.sleep.t_sleeping_state;
    begin
 
@@ -78,7 +75,7 @@ is
             ewok.tasks.get_state (id, TASK_MODE_MAINTHREAD) /= TASK_STATE_LOCKED
          then
             elected := id;
-            return elected;
+            return;
          end if;
       end loop;
 
@@ -92,7 +89,7 @@ is
             if TSK.tasks_list(id).mode = TASK_MODE_MAINTHREAD then
                last_main_user_task_id := elected;
             end if;
-            return elected;
+            return;
          end if;
       end loop;
 
@@ -134,7 +131,7 @@ is
       if ewok.tasks.get_state
               (ID_SOFTIRQ, TASK_MODE_MAINTHREAD) = TASK_STATE_RUNNABLE then
          elected := ID_SOFTIRQ;
-         return elected;
+         return;
       end if;
 
       --
@@ -146,7 +143,7 @@ is
             ewok.tasks.set_state
               (id, TASK_MODE_MAINTHREAD, TASK_STATE_RUNNABLE);
             elected := id;
-            return elected;
+            return;
          end if;
       end loop;
 
@@ -165,7 +162,7 @@ is
             if ewok.tasks.get_state
               (id, TASK_MODE_MAINTHREAD) = TASK_STATE_RUNNABLE then
                elected := id;
-               return elected;
+               return;
             end if;
             if id /= applications.list'last then
                id := t_task_id'succ (id);
@@ -191,7 +188,7 @@ is
               (id, TASK_MODE_MAINTHREAD) = TASK_STATE_RUNNABLE then
                elected := id;
                last_main_user_task_id := elected;
-               return elected;
+               return;
             end if;
          end loop;
       end;
@@ -229,7 +226,7 @@ is
             then
                elected := id;
                last_main_user_task_id := elected;
-               return elected;
+               return;
             end if;
          end loop;
       end;
@@ -237,14 +234,14 @@ is
 
       -- Default
       elected := ID_KERNEL;
-      return elected;
+      return;
 
    end task_elect;
 
 
-   function pendsv_handler
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure pendsv_handler
+     (frame_a     : in ewok.t_stack_frame_access;
+      new_frame_a : out ewok.t_stack_frame_access)
    is
       old_task_id    : constant t_task_id    := current_task_id;
       old_task_mode  : constant t_task_mode  := current_task_mode;
@@ -255,7 +252,8 @@ is
          ewok.tasks.get_state
            (current_task_id, TASK_MODE_ISRTHREAD) = TASK_STATE_RUNNABLE
       then
-         return frame_a;
+         new_frame_a := frame_a;
+         return;
       end if;
 
 #if CONFIG_KERNEL_EXP_REENTRANCY
@@ -277,7 +275,7 @@ is
       end if;
 
       -- Elect a new task and change current_task_id
-      current_task_id   := task_elect;
+      task_elect (current_task_id);
       current_task_mode := TSK.tasks_list(current_task_id).mode;
 
 #if CONFIG_KERNEL_EXP_REENTRANCY
@@ -295,17 +293,17 @@ is
 
       -- Return the new context
       if current_task_mode = TASK_MODE_ISRTHREAD then
-         return TSK.tasks_list(current_task_id).isr_ctx.frame_a;
+         new_frame_a := TSK.tasks_list(current_task_id).isr_ctx.frame_a;
       else
-         return TSK.tasks_list(current_task_id).ctx.frame_a;
+         new_frame_a := TSK.tasks_list(current_task_id).ctx.frame_a;
       end if;
 
    end pendsv_handler;
 
 
-   function systick_handler
-     (frame_a : ewok.t_stack_frame_access)
-      return ewok.t_stack_frame_access
+   procedure systick_handler
+     (frame_a     : in ewok.t_stack_frame_access;
+      new_frame_a : out ewok.t_stack_frame_access)
    is
       old_task_id    : constant t_task_id    := current_task_id;
       old_task_mode  : constant t_task_mode  := current_task_mode;
@@ -320,7 +318,8 @@ is
       -- FIXME - CONFIG_SCHED_PERIOD must be in milliseconds,
       --         not in ticks
       if sched_period /= $CONFIG_SCHED_PERIOD then
-         return frame_a;
+         new_frame_a := frame_a;
+         return;
       else
          sched_period := 0;
       end if;
@@ -346,7 +345,8 @@ is
 #if CONFIG_KERNEL_EXP_REENTRANCY
          m4.cpu.enable_irq;
 #end if;
-         return frame_a;
+         new_frame_a := frame_a;
+         return;
       end if;
 
       -- Save current context
@@ -357,7 +357,7 @@ is
       end if;
 
       -- Elect a new task
-      current_task_id   := task_elect;
+      task_elect (current_task_id);
       current_task_mode := TSK.tasks_list(current_task_id).mode;
 
 #if CONFIG_KERNEL_EXP_REENTRANCY
@@ -375,9 +375,9 @@ is
 
       -- Return the new context
       if current_task_mode = TASK_MODE_ISRTHREAD then
-         return TSK.tasks_list(current_task_id).isr_ctx.frame_a;
+         new_frame_a := TSK.tasks_list(current_task_id).isr_ctx.frame_a;
       else
-         return TSK.tasks_list(current_task_id).ctx.frame_a;
+         new_frame_a := TSK.tasks_list(current_task_id).ctx.frame_a;
       end if;
 
    end systick_handler;

@@ -108,13 +108,14 @@ is
 
    procedure bytes_to_region_size
      (bytes       : in  unsigned_32;
-      region_size : out m4.mpu.t_region_size;
-      success     : out boolean)
+      region_size : out m4.mpu.t_region_size)
       with
          global => null,
          -- Bytes (region size) is a power of 2
-         pre    => ((bytes >= 32) and (bytes and (bytes - 1)) = 0),
          -- 4GB region size is not considered by this function
+         pre    => ((bytes and (bytes - 1)) = 0 and
+                     bytes >= 32 and
+                     bytes <= 2*GBYTE),
          post   => region_size < 31 and
                    (2**(natural (region_size) + 1) = bytes);
 

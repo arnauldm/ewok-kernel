@@ -28,9 +28,9 @@ package ewok.mpu.handler
    with spark_mode => on
 is
 
-   function memory_fault_handler
-     (frame_a : t_stack_frame_access)
-      return t_stack_frame_access;
+   procedure memory_fault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 
    procedure init
       with global => (in_out => ewok.interrupts.interrupt_table);

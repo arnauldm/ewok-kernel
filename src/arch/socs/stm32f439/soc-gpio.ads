@@ -227,6 +227,73 @@ is
    end record
       with pack, size => 32, volatile_full_access;
 
+   ----------------------
+   -- GPIO peripherals --
+   ----------------------
+
+   type t_GPIO_port is record
+      MODER       : t_GPIOx_MODER;
+      OTYPER      : t_GPIOx_OTYPER;
+      OSPEEDR     : t_GPIOx_OSPEEDR;
+      PUPDR       : t_GPIOx_PUPDR;
+      IDR         : t_GPIOx_IDR;
+      ODR         : t_GPIOx_ODR;
+      BSRR        : t_GPIOx_BSRR;
+      LCKR        : t_GPIOx_LCKR;
+      AFRL        : t_GPIOx_AFRL;
+      AFRH        : t_GPIOx_AFRH;
+   end record
+      with volatile;
+
+   for t_GPIO_port use record
+      MODER       at 16#00# range 0 .. 31;
+      OTYPER      at 16#04# range 0 .. 31;
+      OSPEEDR     at 16#08# range 0 .. 31;
+      PUPDR       at 16#0C# range 0 .. 31;
+      IDR         at 16#10# range 0 .. 31;
+      ODR         at 16#14# range 0 .. 31;
+      BSRR        at 16#18# range 0 .. 31;
+      LCKR        at 16#1C# range 0 .. 31;
+      AFRL        at 16#20# range 0 .. 31;
+      AFRH        at 16#24# range 0 .. 31;
+   end record;
+
+   GPIOA : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOA_BASE);
+
+   GPIOB : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOB_BASE);
+
+   GPIOC : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOC_BASE);
+
+   GPIOD : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOD_BASE);
+
+   GPIOE : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOE_BASE);
+
+   GPIOF : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOF_BASE);
+
+   GPIOG : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOG_BASE);
+
+   GPIOH : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOH_BASE);
+
+   GPIOI : aliased t_GPIO_port
+      with import, volatile,
+           address => system'to_address (soc.layout.GPIOI_BASE);
+
    ---------------
    -- Utilities --
    ---------------
@@ -308,7 +375,9 @@ is
       pin      : in  t_gpio_pin_index;
       value    : in  bit)
       with
-         global => null;
+         global =>
+           (output =>
+              (GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, GPIOF, GPIOG, GPIOH, GPIOI));
 
    -- set the GPIO input value on GPIO in input mode
    procedure read_pin
@@ -317,74 +386,5 @@ is
       value    : out bit)
       with
          global => null;
-
-private
-
-   type t_GPIO_port is record
-      MODER       : t_GPIOx_MODER;
-      OTYPER      : t_GPIOx_OTYPER;
-      OSPEEDR     : t_GPIOx_OSPEEDR;
-      PUPDR       : t_GPIOx_PUPDR;
-      IDR         : t_GPIOx_IDR;
-      ODR         : t_GPIOx_ODR;
-      BSRR        : t_GPIOx_BSRR;
-      LCKR        : t_GPIOx_LCKR;
-      AFRL        : t_GPIOx_AFRL;
-      AFRH        : t_GPIOx_AFRH;
-   end record
-      with volatile;
-
-   for t_GPIO_port use record
-      MODER       at 16#00# range 0 .. 31;
-      OTYPER      at 16#04# range 0 .. 31;
-      OSPEEDR     at 16#08# range 0 .. 31;
-      PUPDR       at 16#0C# range 0 .. 31;
-      IDR         at 16#10# range 0 .. 31;
-      ODR         at 16#14# range 0 .. 31;
-      BSRR        at 16#18# range 0 .. 31;
-      LCKR        at 16#1C# range 0 .. 31;
-      AFRL        at 16#20# range 0 .. 31;
-      AFRH        at 16#24# range 0 .. 31;
-   end record;
-
-   ----------------------
-   -- GPIO peripherals --
-   ----------------------
-
-   GPIOA : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOA_BASE);
-
-   GPIOB : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOB_BASE);
-
-   GPIOC : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOC_BASE);
-
-   GPIOD : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOD_BASE);
-
-   GPIOE : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOE_BASE);
-
-   GPIOF : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOF_BASE);
-
-   GPIOG : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOG_BASE);
-
-   GPIOH : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOH_BASE);
-
-   GPIOI : aliased t_GPIO_port
-      with import, volatile,
-           address => system'to_address (soc.layout.GPIOI_BASE);
 
 end soc.gpio;

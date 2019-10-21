@@ -25,17 +25,21 @@ package ewok.interrupts.handler
    with spark_mode => on
 is
 
-   function hardfault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access;
+   procedure busfault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 
-   function busfault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access;
+   procedure usagefault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 
-   function usagefault_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access;
+   procedure hardfault_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 
-   function systick_default_handler
-     (frame_a : ewok.t_stack_frame_access) return ewok.t_stack_frame_access;
+   procedure systick_default_handler
+     (frame_a      : in  ewok.t_stack_frame_access;
+      new_frame_a  : out ewok.t_stack_frame_access);
 
    function default_sub_handler
      (frame_a : t_stack_frame_access) return t_stack_frame_access

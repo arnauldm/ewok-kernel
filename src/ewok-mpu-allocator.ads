@@ -39,7 +39,19 @@ is
       of t_region_entry
          := (others => (false, 0));
 
+   function is_free_region return boolean is
+     (for some R in regions_pool'range => regions_pool(R).used = false)
+      with ghost;
+
    function free_region_exist return boolean;
+
+
+   -- Used for verification
+   function to_next_power_of_2 (n : unsigned_32)
+      return unsigned_32;
+
+   function is_power_of_2 (n : unsigned_32)
+      return boolean;
 
    procedure map_in_pool
      (addr           : in  system_address;
@@ -49,9 +61,12 @@ is
       success        : out boolean);
 
    procedure unmap_from_pool
-     (addr           : in  system_address;
-      success        : out boolean);
+     (addr           : in  system_address);
 
    procedure unmap_all_from_pool;
+
+   -- SPARK
+   function is_in_pool
+     (addr : system_address) return boolean;
 
 end ewok.mpu.allocator;
