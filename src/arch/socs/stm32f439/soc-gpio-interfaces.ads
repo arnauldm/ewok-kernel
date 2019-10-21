@@ -26,15 +26,15 @@ package soc.gpio.interfaces
    with spark_mode => on
 is
 
-   function configure
+   procedure configure
      (port     : in  unsigned_8;
       pin      : in  unsigned_8;
       mode     : in  t_pin_mode;
       otype    : in  t_pin_output_type;
       ospeed   : in  t_pin_output_speed;
       pupd     : in  t_pin_pupd;
-      af       : in  t_pin_alt_func)
-      return types.c.t_retval;
+      af       : in  t_pin_alt_func;
+      success  : out types.c.t_retval);
 
 end soc.gpio.interfaces;
 

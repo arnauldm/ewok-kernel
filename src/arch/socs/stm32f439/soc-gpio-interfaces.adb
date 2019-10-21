@@ -22,30 +22,36 @@
 
 
 package body soc.gpio.interfaces
-   with spark_mode => off
+   with spark_mode => on
 is
 
-   function configure
+   procedure configure
      (port     : in  unsigned_8;
       pin      : in  unsigned_8;
       mode     : in  t_pin_mode;
       otype    : in  t_pin_output_type;
       ospeed   : in  t_pin_output_speed;
       pupd     : in  t_pin_pupd;
-      af       : in  t_pin_alt_func)
-      return types.c.t_retval
+      af       : in  t_pin_alt_func;
+      success  : out types.c.t_retval)
    is
-      gpio_port : constant t_gpio_port_index := t_gpio_port_index'val (port);
-      gpio_pin  : constant t_gpio_pin_index  := t_gpio_pin_index'val (pin);
+      gpio_port : t_gpio_port_index;
+      gpio_pin  : t_gpio_pin_index;
    begin
 
-      if not gpio_port'valid then
-         return types.c.FAILURE;
+      if port > t_gpio_port_index'pos (t_gpio_port_index'last) then
+         success := types.c.FAILURE;
+         return;
       end if;
 
-      if not gpio_pin'valid then
-         return types.c.FAILURE;
+      gpio_port := t_gpio_port_index'val (port);
+
+      if pin > t_gpio_pin_index'pos (t_gpio_pin_index'last) then
+         success := types.c.FAILURE;
+         return;
       end if;
+
+      gpio_pin  := t_gpio_pin_index'val (pin);
 
       soc.gpio.enable_clock (gpio_port);
       soc.gpio.set_mode (gpio_port, gpio_pin, mode);
@@ -54,7 +60,7 @@ is
       soc.gpio.set_pupd (gpio_port, gpio_pin, pupd);
       soc.gpio.set_af (gpio_port, gpio_pin, af);
 
-      return types.c.SUCCESS;
+      success := types.c.SUCCESS;
    end configure;
 
 
