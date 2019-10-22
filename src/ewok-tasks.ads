@@ -35,8 +35,6 @@ package ewok.tasks
    with spark_mode => on
 is
 
-   subtype t_task_name is string (1 .. 10);
-
    type t_task_state is (
       -- No task in this slot
       TASK_STATE_EMPTY,

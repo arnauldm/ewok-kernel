@@ -36,10 +36,9 @@ with soc.nvic;
 with soc.gpio;
 with soc.rcc;
 with types.c;
-with applications;
 
 package body ewok.devices
-   with spark_mode => off
+   with spark_mode => on
 is
 
    --pragma debug_policy (IGNORE);
@@ -124,7 +123,7 @@ is
       -- Retrieving the dev_id from the interrupt
       dev_id := ewok.interrupts.get_device_from_interrupt (interrupt);
       if dev_id = ID_DEV_UNUSED then
-         success := false;
+         success  := false;
          return;
       end if;
 
@@ -181,14 +180,16 @@ is
       success  : out boolean)
    is
       len      : constant natural       := types.c.len (udev.name);
-      periph_id: soc.devmap.t_periph_id := NO_PERIPH;
       name     : string (1 .. len);
+      periph_id: soc.devmap.t_periph_id := NO_PERIPH;
       found    : boolean;
       used     : boolean;
    begin
 
       -- Convert C name to Ada string type for further log messages
-      types.c.to_ada (name, udev.name);
+      if len >= 1 then
+         types.c.to_ada (name, udev.name);
+      end if;
 
       -- Is it an existing device ?
       -- Note: GPIOs (size = 0) are not considered as devices despite a task
@@ -244,39 +245,51 @@ is
       end loop;
 
       -- We verify that the interrupts declared by this device really belong
-      -- to it
-      for declared_it in 1 .. udev.interrupt_num loop
-         found := false;
+      -- to it and that we can register an interrupt handlers
+      if udev.interrupt_num > 0 then
 
-         inner_loop:
-         for i in soc.devmap.periphs(periph_id).interrupt_list'range loop
-            if soc.devmap.periphs(periph_id).interrupt_list(i)
-                  = udev.interrupts(declared_it).interrupt
-            then
-               found := true;
-               exit inner_loop;
+         if periph_id = NO_PERIPH then
+            dev_id  := ID_DEV_UNUSED;
+            success := false;
+            return;
+         end if;
+
+         -- We verify that the interrupts declared by this device really belong
+         -- to it
+         for declared_it in 1 .. udev.interrupt_num loop
+            found := false;
+
+            inner_loop:
+            for i in soc.devmap.periphs(periph_id).interrupt_list'range loop
+               if soc.devmap.periphs(periph_id).interrupt_list(i)
+                     = udev.interrupts(declared_it).interrupt
+               then
+                  found := true;
+                  exit inner_loop;
+               end if;
+            end loop inner_loop;
+
+            if not found then
+               pragma DEBUG (debug.log (debug.ERROR, "Invalid interrupts: " & name));
+               dev_id  := ID_DEV_UNUSED;
+               success := false;
+               return;
             end if;
-         end loop inner_loop;
+         end loop;
 
-         if not found then
-            pragma DEBUG (debug.log (debug.ERROR, "Invalid interrupts: " & name));
-            dev_id  := ID_DEV_UNUSED;
-            success := false;
-            return;
-         end if;
-      end loop;
+         -- Is it possible to register interrupt handlers ?
+         for i in 1 .. udev.interrupt_num loop
+            if ewok.interrupts.is_interrupt_already_used
+                 (udev.interrupts(i).interrupt)
+            then
+               pragma DEBUG (debug.log (debug.ERROR, "Interrupts already used: " & name));
+               dev_id  := ID_DEV_UNUSED;
+               success := false;
+               return;
+            end if;
+         end loop;
 
-      -- Is it possible to register interrupt handlers ?
-      for i in 1 .. udev.interrupt_num loop
-         if ewok.interrupts.is_interrupt_already_used
-              (udev.interrupts(i).interrupt)
-         then
-            pragma DEBUG (debug.log (debug.ERROR, "Interrupts already used: " & name));
-            dev_id  := ID_DEV_UNUSED;
-            success := false;
-            return;
-         end if;
-      end loop;
+      end if;
 
       -- Is it possible to register a device ?
       get_registered_device_entry (dev_id, success);
@@ -323,6 +336,10 @@ is
 
       -- Registering handlers
       for i in 1 .. udev.interrupt_num loop
+         if udev.interrupts(i).handler = 0 then
+            -- Should have been spotted by sanitization routines
+            raise program_error;
+         end if;
          ewok.interrupts.set_interrupt_handler
            (udev.interrupts(i).interrupt,
             DEFAULT_HANDLER,
@@ -402,6 +419,10 @@ is
       -- For each interrupt, enable its associated IRQ in the NVIC
       for i in 1 .. registered_device(dev_id).udev.interrupt_num loop
          interrupt := registered_device(dev_id).udev.interrupts(i).interrupt;
+         if interrupt < soc.interrupts.INT_WWDG then
+            raise program_error;
+         end if;
+
          irq       := soc.nvic.to_irq_number (interrupt);
          soc.nvic.enable_irq (irq);
          pragma DEBUG (debug.log (debug.INFO, "IRQ enabled: " & soc.nvic.t_irq_index'image (irq)));
@@ -426,6 +447,8 @@ is
       config   : in  ewok.exported.interrupts.t_interrupt_config;
       task_id  : in  t_task_id)
       return boolean
+      with
+         pre => task_id in applications.t_real_task_id
    is
    begin
 
@@ -524,6 +547,8 @@ is
       config   : in  ewok.exported.gpios.t_gpio_config;
       task_id  : in  t_task_id)
       return boolean
+      with
+         pre => task_id in applications.t_real_task_id
    is
       pragma unreferenced (udev);
    begin
@@ -565,10 +590,11 @@ is
    begin
 
       if udev.name(t_device_name'last) /= ASCII.NUL then
-         types.c.to_ada (name, udev.name(1 .. t_device_name'length));
-         pragma DEBUG (debug.log (debug.ERROR, "Out-of-bound device name: " & name));
+         pragma DEBUG (debug.log (debug.ERROR, "Out-of-bound device name"));
          return false;
-      else
+      end if;
+
+      if len >= 1 then
          types.c.to_ada (name, udev.name);
       end if;
 

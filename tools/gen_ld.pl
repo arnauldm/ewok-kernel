@@ -65,7 +65,6 @@ print $OUTHDR_ADA "
 with interfaces;        use interfaces;
 with types;             use types;
 with ewok.tasks_shared; use ewok.tasks_shared;
-with ewok.tasks;	use ewok.tasks;
 with m4.mpu;
 with soc.layout;    use soc.layout;
 
@@ -74,7 +73,7 @@ package $ada_pkg_name
 is
 
    type t_application is record
-      name         : ewok.tasks.t_task_name;
+      name         : ewok.tasks_shared.t_task_name;
       slot         : m4.mpu.t_subregion;
       domain       : unsigned_8;
       priority     : unsigned_8;

@@ -27,6 +27,7 @@ with ewok.exported.interrupts;
 with soc.interrupts;
 with soc.devmap;
 with m4.mpu;
+with applications;
 
 package ewok.devices
    with spark_mode => on
@@ -54,7 +55,9 @@ is
 
    procedure get_registered_device_entry
      (dev_id   : out t_device_id;
-      success  : out boolean);
+      success  : out boolean)
+   with
+      post => (if success then dev_id /= ID_DEV_UNUSED);
 
    procedure release_registered_device_entry (dev_id : t_registered_device_id);
 
@@ -101,6 +104,6 @@ is
       task_id  : in  t_task_id)
       return boolean
    with
-      pre => task_id /= ID_UNUSED;
+      pre => task_id in applications.t_real_task_id;
 
 end ewok.devices;

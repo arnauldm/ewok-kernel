@@ -26,6 +26,9 @@ with ada.unchecked_conversion;
 package ewok.tasks_shared
    with spark_mode => on
 is
+
+   subtype t_task_name is string (1 .. 10);
+
    type t_task_id is
      (ID_UNUSED,
       ID_APP1,

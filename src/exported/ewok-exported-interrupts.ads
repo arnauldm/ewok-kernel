@@ -94,8 +94,8 @@ is
 
    type t_interrupt_posthook is record
       action      : t_posthook_instruction_list; -- Reading, writing, masking...
-      status      : unsigned_32;
-      data        : unsigned_32;
+      status      : unsigned_32  := 0;
+      data        : unsigned_32  := 0;
    end record;
 
    type t_interrupt_config is record

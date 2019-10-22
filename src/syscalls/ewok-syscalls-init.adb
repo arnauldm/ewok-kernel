@@ -227,7 +227,7 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
    is
 
-      target_name : TSK.t_task_name
+      target_name : ewok.tasks_shared.t_task_name
          with address => to_address (params(1));
 
       target_id   : ewok.tasks_shared.t_task_id
