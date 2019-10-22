@@ -27,7 +27,7 @@ with ewok.debug;
 with m4.scb;
 
 package body ewok.syscalls.reset
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_reset

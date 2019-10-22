@@ -20,7 +20,6 @@
 --
 --
 
-with ewok.tasks;        use ewok.tasks;
 with ewok.sanitize;
 with ewok.debug;
 

@@ -21,6 +21,8 @@
 --
 
 with ewok.tasks_shared;
+with ewok.tasks;
+with applications;
 
 package ewok.syscalls.sleep
    with spark_mode => on
@@ -29,6 +31,9 @@ is
    procedure svc_sleep
      (caller_id   : in     ewok.tasks_shared.t_task_id;
       params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+      mode        : in     ewok.tasks_shared.t_task_mode)
+   with
+      global => (in_out => ewok.tasks.tasks_list),
+      pre => caller_id in applications.t_real_task_id;
 
 end ewok.syscalls.sleep;

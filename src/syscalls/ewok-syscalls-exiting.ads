@@ -22,6 +22,7 @@
 
 
 with ewok.tasks_shared; use ewok.tasks_shared;
+with applications;
 
 package ewok.syscalls.exiting
    with spark_mode => on
@@ -29,6 +30,8 @@ is
 
    procedure svc_exit
      (caller_id   : in  ewok.tasks_shared.t_task_id;
-      mode        : in  ewok.tasks_shared.t_task_mode);
+      mode        : in  ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id;
 
 end ewok.syscalls.exiting;

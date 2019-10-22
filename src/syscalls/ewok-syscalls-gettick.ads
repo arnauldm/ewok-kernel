@@ -21,6 +21,8 @@
 --
 
 with ewok.tasks_shared;
+with ewok.tasks;        use ewok.tasks;
+with applications;
 
 package ewok.syscalls.gettick
    with spark_mode => on
@@ -29,6 +31,9 @@ is
    procedure svc_gettick
      (caller_id   : in     ewok.tasks_shared.t_task_id;
       params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+      mode        : in     ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
 end ewok.syscalls.gettick;

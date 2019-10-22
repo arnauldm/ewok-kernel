@@ -20,7 +20,6 @@
 --
 --
 
-with ewok.tasks;        use ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.exported.dma;
 with ewok.dma_shared;

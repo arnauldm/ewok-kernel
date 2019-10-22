@@ -22,6 +22,8 @@
 
 with ewok.tasks;
 with ewok.tasks_shared;
+with m4.scb;
+with applications;
 
 package ewok.syscalls.lock
    with spark_mode => on
@@ -31,12 +33,15 @@ is
      (caller_id   : in ewok.tasks_shared.t_task_id;
       mode        : in ewok.tasks_shared.t_task_mode)
    with
-      global => (output => ewok.tasks.tasks_list);
+      global => (in_out => ewok.tasks.tasks_list),
+      pre => caller_id in applications.t_real_task_id;
 
    procedure svc_lock_exit
      (caller_id   : in ewok.tasks_shared.t_task_id;
       mode        : in ewok.tasks_shared.t_task_mode)
    with
-      global => (output => ewok.tasks.tasks_list);
+      global =>
+        (in_out => (ewok.tasks.tasks_list, m4.scb.SCB)),
+      pre => caller_id in applications.t_real_task_id;
 
 end ewok.syscalls.lock;

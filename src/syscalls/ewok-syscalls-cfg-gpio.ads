@@ -21,6 +21,8 @@
 --
 
 with ewok.tasks_shared;
+with ewok.tasks;        use ewok.tasks;
+with applications;
 
 package ewok.syscalls.cfg.gpio
    with spark_mode => on
@@ -28,16 +30,25 @@ is
    procedure svc_gpio_set
      (caller_id   : in     ewok.tasks_shared.t_task_id;
       params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+      mode        : in     ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
    procedure svc_gpio_get
      (caller_id   : in     ewok.tasks_shared.t_task_id;
       params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+      mode        : in     ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
    procedure svc_gpio_unlock_exti
      (caller_id   : in     ewok.tasks_shared.t_task_id;
       params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+      mode        : in     ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
 end ewok.syscalls.cfg.gpio;

@@ -25,7 +25,7 @@ with ewok.tasks;        use ewok.tasks;
 with ewok.sched;
 
 package body ewok.syscalls.yield
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_yield

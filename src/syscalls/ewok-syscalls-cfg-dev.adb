@@ -21,8 +21,6 @@
 --
 
 with ewok.debug;
-with ewok.tasks;              use ewok.tasks;
-with ewok.tasks_shared;       use ewok.tasks_shared;
 with ewok.exported.devices;   use ewok.exported.devices;
 with ewok.devices_shared;     use ewok.devices_shared;
 with ewok.devices;
@@ -61,7 +59,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): forbidden in ISR mode"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- No map/unmap before end of initialization
@@ -69,7 +69,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): forbidden during init sequence"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Valid device descriptor ?
@@ -78,7 +80,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): invalid device descriptor"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Used device descriptor ?
@@ -88,7 +92,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): unused device"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       dev_id := TSK.tasks_list(caller_id).devices(dev_descriptor).device_id;
@@ -106,7 +112,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): not a DEV_MAP_VOLUNTARY device"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Verifying that the device is not already mapped
@@ -114,7 +122,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): the device is already mapped"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       --
@@ -127,7 +137,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): mount_device() failed (no free region?)"));
-         goto ret_busy;
+         TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- We enable the device if its not already enabled
@@ -136,27 +148,13 @@ is
       --         devices (cf. ewok-syscalls-init.adb)
       ewok.devices.enable_device (dev_id, ok);
       if not ok then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_busy>>
-      set_return_value (caller_id, mode, SYS_E_BUSY);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
     end svc_dev_map;
 
 
@@ -183,7 +181,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): forbidden in ISR mode"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- No unmap before end of initialization
@@ -191,7 +191,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): forbidden during init sequence"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Valid device descriptor ?
@@ -200,7 +202,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): invalid device descriptor"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Used device descriptor ?
@@ -210,7 +214,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): unused device"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       dev_id := TSK.tasks_list(caller_id).devices(dev_descriptor).device_id;
@@ -228,7 +234,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): not a DEV_MAP_VOLUNTARY device"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Verifying that the device is not already mapped
@@ -236,25 +244,16 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): the device is not mapped"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Unmapping the device
       TSK.unmount_device (caller_id, dev_descriptor);
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
 
    end svc_dev_unmap;
 
@@ -275,7 +274,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_release(): forbidden during init sequence"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Valid device descriptor ?
@@ -284,7 +285,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_release(): invalid device descriptor"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Used device descriptor ?
@@ -294,7 +297,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_release(): unused device"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       dev_id := TSK.tasks_list(caller_id).devices(dev_descriptor).device_id;
@@ -319,20 +324,12 @@ is
 
       -- Release GPIOs, EXTIs and interrupts
       ewok.devices.release_device (caller_id, dev_id, ok);
+      if not ok then
+         raise program_error;
+      end if;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
 
    end svc_dev_release;
 

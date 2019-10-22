@@ -21,7 +21,9 @@
 --
 
 
+with ewok.tasks;
 with ewok.tasks_shared;
+with applications;
 
 
 package ewok.syscalls.ipc
@@ -32,12 +34,18 @@ is
      (caller_id   : in ewok.tasks_shared.t_task_id;
       params      : in t_parameters;
       blocking    : in boolean;
-      mode        : in ewok.tasks_shared.t_task_mode);
+      mode        : in ewok.tasks_shared.t_task_mode)
+   with
+      global => (in_out => ewok.tasks.tasks_list),
+      pre => caller_id in applications.t_real_task_id;
 
    procedure svc_ipc_do_send
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      blocking    : in     boolean;
-      mode        : in     ewok.tasks_shared.t_task_mode);
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      blocking    : in boolean;
+      mode        : in ewok.tasks_shared.t_task_mode)
+   with
+      global => (in_out => ewok.tasks.tasks_list),
+      pre => caller_id in applications.t_real_task_id;
 
 end ewok.syscalls.ipc;

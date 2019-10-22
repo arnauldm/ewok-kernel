@@ -21,7 +21,6 @@
 --
 
 with ewok.perm;            use ewok.perm;
-with ewok.tasks;           use ewok.tasks;
 with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.exported.ticks;  use ewok.exported.ticks;
 with ewok.sanitize;

@@ -21,6 +21,8 @@
 --
 
 with ewok.tasks_shared;
+with ewok.tasks;        use ewok.tasks;
+with applications;
 
 package ewok.syscalls.init
    with spark_mode => on
@@ -29,15 +31,24 @@ is
    procedure svc_register_device
      (caller_id   : in ewok.tasks_shared.t_task_id;
       params      : in t_parameters;
-      mode        : in ewok.tasks_shared.t_task_mode);
+      mode        : in ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
    procedure svc_init_done
      (caller_id   : in  ewok.tasks_shared.t_task_id;
-      mode        : in  ewok.tasks_shared.t_task_mode);
+      mode        : in  ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
    procedure svc_get_taskid
      (caller_id   : in ewok.tasks_shared.t_task_id;
       params      : in t_parameters;
-      mode        : in ewok.tasks_shared.t_task_mode);
+      mode        : in ewok.tasks_shared.t_task_mode)
+      with
+         pre => caller_id in applications.t_real_task_id,
+         global => (in_out => tasks_list);
 
 end ewok.syscalls.init;

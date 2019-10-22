@@ -24,7 +24,7 @@
 with ewok.tasks;        use ewok.tasks;
 
 package body ewok.syscalls.exiting
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_exit
