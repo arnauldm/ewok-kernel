@@ -38,10 +38,10 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       length      : unsigned_16
-         with address => params(2)'address;
+         with import, address => params(2)'address;
 
       buffer      : unsigned_8_array (1 .. unsigned_32 (length))
-         with address => to_address (params(1));
+         with import, address => to_address (params(1));
 
       ok : boolean;
    begin

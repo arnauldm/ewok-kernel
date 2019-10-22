@@ -25,14 +25,16 @@ with ewok.tasks;
 with m4.scb;
 
 package body ewok.tasks.debug
-   with spark_mode => off
+   with spark_mode => on
 is
 
    package DBG renames ewok.debug;
 
    procedure crashdump (frame_a : in ewok.t_stack_frame_access)
    is
-      cfsr : constant m4.scb.t_SCB_CFSR := m4.scb.SCB.CFSR;
+      cfsr  : constant m4.scb.t_SCB_CFSR := m4.scb.SCB.CFSR;
+      mmfar : constant system_address := m4.scb.SCB.MMFAR.ADDRESS;
+      bfar  : constant system_address := m4.scb.SCB.BFAR.ADDRESS;
    begin
 
       if cfsr.MMFSR.IACCVIOL  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.IACCVIOL")); end if;
@@ -42,8 +44,7 @@ is
       if cfsr.MMFSR.MLSPERR   then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.MLSPERR")); end if;
       if cfsr.MMFSR.MMARVALID then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.MMARVALID")); end if;
       if cfsr.MMFSR.MMARVALID then
-         pragma DEBUG (DBG.log (DBG.ERROR, "MMFAR.ADDRESS = " &
-            system_address'image (m4.scb.SCB.MMFAR.ADDRESS)));
+         pragma DEBUG (DBG.log (DBG.ERROR, "MMFAR.ADDRESS = " & system_address'image (mmfar)));
       end if;
 
       if cfsr.BFSR.IBUSERR    then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.BFSR.IBUSERR")); end if;
@@ -54,8 +55,7 @@ is
       if cfsr.BFSR.LSPERR     then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.BFSR.LSPERR")); end if;
       if cfsr.BFSR.BFARVALID  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.BFSR.BFARVALID")); end if;
       if cfsr.BFSR.BFARVALID  then
-         pragma DEBUG (DBG.log (DBG.ERROR, "BFAR.ADDRESS = " &
-            system_address'image (m4.scb.SCB.BFAR.ADDRESS)));
+         pragma DEBUG (DBG.log (DBG.ERROR, "BFAR.ADDRESS = " & system_address'image (bfar)));
       end if;
 
       if cfsr.UFSR.UNDEFINSTR then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.UNDEFINSTR")); end if;
@@ -65,35 +65,39 @@ is
       if cfsr.UFSR.UNALIGNED  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.UNALIGNED")); end if;
       if cfsr.UFSR.DIVBYZERO  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.DIVBYZERO")); end if;
 
-      DBG.log (DBG.ERROR, ewok.tasks.tasks_list(ewok.sched.current_task_id).name);
+      if ewok.sched.current_task_id /= ID_UNUSED then
+         DBG.log (DBG.ERROR, ewok.tasks.tasks_list(ewok.sched.current_task_id).name);
+      end if;
 
       DBG.alert ("Frame ");
       DBG.alert (system_address'image (to_system_address (frame_a)));
       DBG.newline;
 
-      DBG.alert ("EXC_RETURN ");
-      DBG.alert (unsigned_32'image (frame_a.all.exc_return));
-      DBG.newline;
+      if frame_a /= NULL then
+         DBG.alert ("EXC_RETURN ");
+         DBG.alert (unsigned_32'image (frame_a.all.exc_return));
+         DBG.newline;
 
-      DBG.alert ("R0  "); DBG.alert (unsigned_32'image (frame_a.all.R0)); DBG.newline;
-      DBG.alert ("R1  "); DBG.alert (unsigned_32'image (frame_a.all.R1)); DBG.newline;
-      DBG.alert ("R2  "); DBG.alert (unsigned_32'image (frame_a.all.R2)); DBG.newline;
-      DBG.alert ("R3  "); DBG.alert (unsigned_32'image (frame_a.all.R3)); DBG.newline;
-      DBG.alert ("R4  "); DBG.alert (unsigned_32'image (frame_a.all.R4)); DBG.newline;
-      DBG.alert ("R5  "); DBG.alert (unsigned_32'image (frame_a.all.R5)); DBG.newline;
-      DBG.alert ("R6  "); DBG.alert (unsigned_32'image (frame_a.all.R6)); DBG.newline;
-      DBG.alert ("R7  "); DBG.alert (unsigned_32'image (frame_a.all.R7)); DBG.newline;
-      DBG.alert ("R8  "); DBG.alert (unsigned_32'image (frame_a.all.R8)); DBG.newline;
-      DBG.alert ("R9  "); DBG.alert (unsigned_32'image (frame_a.all.R9)); DBG.newline;
-      DBG.alert ("R10 "); DBG.alert (unsigned_32'image (frame_a.all.R10)); DBG.newline;
-      DBG.alert ("R11 "); DBG.alert (unsigned_32'image (frame_a.all.R11)); DBG.newline;
-      DBG.alert ("R12 "); DBG.alert (unsigned_32'image (frame_a.all.R12)); DBG.newline;
+         DBG.alert ("R0  "); DBG.alert (unsigned_32'image (frame_a.all.R0)); DBG.newline;
+         DBG.alert ("R1  "); DBG.alert (unsigned_32'image (frame_a.all.R1)); DBG.newline;
+         DBG.alert ("R2  "); DBG.alert (unsigned_32'image (frame_a.all.R2)); DBG.newline;
+         DBG.alert ("R3  "); DBG.alert (unsigned_32'image (frame_a.all.R3)); DBG.newline;
+         DBG.alert ("R4  "); DBG.alert (unsigned_32'image (frame_a.all.R4)); DBG.newline;
+         DBG.alert ("R5  "); DBG.alert (unsigned_32'image (frame_a.all.R5)); DBG.newline;
+         DBG.alert ("R6  "); DBG.alert (unsigned_32'image (frame_a.all.R6)); DBG.newline;
+         DBG.alert ("R7  "); DBG.alert (unsigned_32'image (frame_a.all.R7)); DBG.newline;
+         DBG.alert ("R8  "); DBG.alert (unsigned_32'image (frame_a.all.R8)); DBG.newline;
+         DBG.alert ("R9  "); DBG.alert (unsigned_32'image (frame_a.all.R9)); DBG.newline;
+         DBG.alert ("R10 "); DBG.alert (unsigned_32'image (frame_a.all.R10)); DBG.newline;
+         DBG.alert ("R11 "); DBG.alert (unsigned_32'image (frame_a.all.R11)); DBG.newline;
+         DBG.alert ("R12 "); DBG.alert (unsigned_32'image (frame_a.all.R12)); DBG.newline;
 
-      DBG.alert ("PC  "); DBG.alert (unsigned_32'image (frame_a.all.PC)); DBG.newline;
-      DBG.alert ("LR  "); DBG.alert (unsigned_32'image (frame_a.all.LR)); DBG.newline;
-      DBG.alert ("PSR ");
-      DBG.alert (unsigned_32'image (m4.cpu.to_unsigned_32 (frame_a.all.PSR)));
-      DBG.newline;
+         DBG.alert ("PC  "); DBG.alert (unsigned_32'image (frame_a.all.PC)); DBG.newline;
+         DBG.alert ("LR  "); DBG.alert (unsigned_32'image (frame_a.all.LR)); DBG.newline;
+         DBG.alert ("PSR ");
+         DBG.alert (unsigned_32'image (m4.cpu.to_unsigned_32 (frame_a.all.PSR)));
+         DBG.newline;
+      end if;
 
    end crashdump;
 

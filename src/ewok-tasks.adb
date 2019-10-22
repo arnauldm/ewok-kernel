@@ -28,7 +28,6 @@ with ewok.ipc;             use ewok.ipc;
 with ewok.memory;
 with types.c;              use type types.c.t_retval;
 
-with applications; -- Automatically generated
 
 package body ewok.tasks
    with spark_mode => on
@@ -171,8 +170,7 @@ is
             ewok.ipc.ipc_endpoints(tasks_list(id).ipc_endpoint_id(i)).state
                = ewok.ipc.WAIT_FOR_RECEIVER
             and then
-            ewok.ipc.to_task_id
-              (ewok.ipc.ipc_endpoints(tasks_list(id).ipc_endpoint_id(i)).to)
+            ewok.ipc.ipc_endpoints(tasks_list(id).ipc_endpoint_id(i)).to
                = id
          then
             return true;

@@ -44,7 +44,7 @@ with m4.scb;
 
 
 package body ewok.debug
-   with spark_mode => off
+   with spark_mode => on
 is
 
    TX_pin_config     : aliased ewok.exported.gpios.t_gpio_config;
@@ -168,6 +168,9 @@ is
    procedure log (s : string; nl : boolean := true)
    is
    begin
+      if s'last > 800 then
+         raise program_error;
+      end if;
       for i in s'range loop
          putc (s(i));
       end loop;
@@ -181,6 +184,9 @@ is
    procedure log (level : t_level; s : string)
    is
    begin
+      if s'last > 800 then
+         raise program_error;
+      end if;
       case level is
          when DEBUG =>
             log (BG_COLOR_ORANGE & s & BG_COLOR_BLACK);
@@ -197,6 +203,9 @@ is
    procedure alert (s : string)
    is
    begin
+      if s'last > 800 then
+         raise program_error;
+      end if;
       log (BG_COLOR_RED & s & BG_COLOR_BLACK, false);
    end alert;
 
@@ -211,6 +220,9 @@ is
    procedure panic (s : string)
    is
    begin
+      if s'last > 800 then
+         raise program_error;
+      end if;
       log (BG_COLOR_RED & "panic: " & s & BG_COLOR_BLACK);
 
 #if CONFIG_KERNEL_PANIC_FREEZE

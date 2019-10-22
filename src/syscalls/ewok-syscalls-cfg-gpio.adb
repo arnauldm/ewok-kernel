@@ -37,10 +37,10 @@ is
    is
 
       ref   : ewok.exported.gpios.t_gpio_ref
-         with address => params(1)'address;
+         with import, address => params(1)'address;
 
       val   : unsigned_8
-         with address => params(2)'address;
+         with import, address => params(2)'address;
 
    begin
 
@@ -89,10 +89,10 @@ is
    is
 
       ref   : ewok.exported.gpios.t_gpio_ref
-         with address => params(1)'address;
+         with import, address => params(1)'address;
 
       val   : unsigned_8
-         with address => to_address (params(2));
+         with import, address => to_address (params(2));
 
    begin
 
@@ -143,7 +143,7 @@ is
    is
 
       ref         : ewok.exported.gpios.t_gpio_ref
-                        with address => params(1)'address;
+                        with import, address => params(1)'address;
 
       gpio_config : ewok.exported.gpios.t_gpio_config;
 

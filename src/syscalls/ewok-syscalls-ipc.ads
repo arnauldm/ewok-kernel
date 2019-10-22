@@ -23,7 +23,11 @@
 
 with ewok.tasks;
 with ewok.tasks_shared;
+with ewok.sleep;
+with ewok.ipc;
 with applications;
+with m4.mpu;
+with m4.systick;
 
 
 package ewok.syscalls.ipc
@@ -36,8 +40,11 @@ is
       blocking    : in boolean;
       mode        : in ewok.tasks_shared.t_task_mode)
    with
-      global => (in_out => ewok.tasks.tasks_list),
-      pre => caller_id in applications.t_real_task_id;
+      pre => caller_id in applications.t_real_task_id,
+      global =>
+        (in_out => (ewok.tasks.tasks_list,
+                    ewok.ipc.ipc_endpoints,
+                    m4.mpu.MPU));
 
    procedure svc_ipc_do_send
      (caller_id   : in ewok.tasks_shared.t_task_id;
@@ -45,7 +52,12 @@ is
       blocking    : in boolean;
       mode        : in ewok.tasks_shared.t_task_mode)
    with
-      global => (in_out => ewok.tasks.tasks_list),
-      pre => caller_id in applications.t_real_task_id;
+      pre => caller_id in applications.t_real_task_id,
+      global =>
+        (input  => (ewok.sleep.awakening_time,
+                    m4.systick.ticks),
+         in_out => (ewok.tasks.tasks_list,
+                    ewok.ipc.ipc_endpoints,
+                    m4.mpu.MPU));
 
 end ewok.syscalls.ipc;

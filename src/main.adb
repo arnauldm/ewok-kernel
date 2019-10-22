@@ -34,6 +34,7 @@ with ewok.debug;
 with ewok.dma;
 with ewok.exti;
 with ewok.interrupts;
+with ewok.interrupts.unproved;
 with ewok.memory;
 with ewok.softirq;
 with ewok.sched.unproved;
@@ -56,7 +57,7 @@ begin
    m4.cpu.disable_irq;
 
    -- Initialize interrupts, handlers & priorities
-   ewok.interrupts.init;
+   ewok.interrupts.unproved.init;
 
    -- Initialize system Clock
    m4.systick.init;

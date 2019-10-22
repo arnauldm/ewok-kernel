@@ -30,12 +30,12 @@ with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.sanitize;
 with ewok.perm;
 with ewok.sleep;        use type ewok.sleep.t_sleeping_state;
-with ewok.debug;
 with ewok.memory;
+with ewok.debug;
 
 
 package body ewok.syscalls.ipc
-   with spark_mode => off
+   with spark_mode => on
 is
 
    --pragma debug_policy (IGNORE);
@@ -60,12 +60,12 @@ is
       expected_sender_address : constant system.address
          := to_address (params(1));
       expected_sender : ewok.ipc.t_extended_task_id
-         with address => expected_sender_address;
+         with import, address => expected_sender_address;
 
       -- Buffer size
       size_address   : constant system.address := to_address (params(2));
       size           : unsigned_8
-         with address => size_address;
+         with import, address => size_address;
 
       -- Input buffer
       buf_size       : constant unsigned_8     := size;
@@ -79,7 +79,7 @@ is
       listen_any     : boolean;
 
       -- Listening to a specific id ?
-      id_sender      : ewok.tasks_shared.t_task_id;
+      id_sender      : ewok.tasks_shared.t_task_id := ID_UNUSED;
 
    begin
 
@@ -100,7 +100,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): IPCs in ISR mode not allowed!"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -109,7 +109,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): invalid id_sender"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -119,7 +119,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): initialization not completed"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -131,7 +131,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): 'size' parameter not in task's address space"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -143,7 +143,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): 'expected_sender' parameter not in task's address space"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -155,7 +155,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): 'buffer' parameter not in task's address space"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -164,8 +164,8 @@ is
       if expected_sender = ewok.ipc.ANY_APP then
          listen_any  := true;
       else
-         id_sender   := ewok.ipc.to_task_id (expected_sender);
          listen_any  := false;
+         id_sender   := ewok.ipc.to_task_id (expected_sender);
       end if;
 
       -- When the sender is a task, we have to do some additional checks
@@ -176,7 +176,7 @@ is
             pragma DEBUG (debug.log (debug.ERROR,
                TSK.tasks_list(caller_id).name
                & ": recv(): invalid id_sender"));
-            set_return_value (caller_id, mode, SYS_E_INVAL);
+            TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -193,7 +193,7 @@ is
             pragma DEBUG (debug.log (debug.ERROR,
                TSK.tasks_list(caller_id).name
                & ": recv(): sender and receiver are the same"));
-            set_return_value (caller_id, mode, SYS_E_INVAL);
+            TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -204,7 +204,7 @@ is
             pragma DEBUG (debug.log (debug.ERROR,
                TSK.tasks_list(caller_id).name
                & ": recv(): sender's domain not granted"));
-            set_return_value (caller_id, mode, SYS_E_DENIED);
+            TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -216,7 +216,7 @@ is
                TSK.tasks_list(caller_id).name
                & ": recv(): not granted to listen task "
                & TSK.tasks_list(id_sender).name));
-            set_return_value (caller_id, mode, SYS_E_DENIED);
+            TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -237,7 +237,7 @@ is
                and then
                ewok.ipc.ipc_endpoints(id).state = ewok.ipc.WAIT_FOR_RECEIVER
                and then
-               ewok.ipc.to_task_id (ewok.ipc.ipc_endpoints(id).to) = caller_id
+               ewok.ipc.ipc_endpoints(id).to = caller_id
             then
                ep_id := id;
                exit;
@@ -256,7 +256,7 @@ is
                and then
                ewok.ipc.ipc_endpoints(id).state = ewok.ipc.WAIT_FOR_RECEIVER
                and then
-               ewok.ipc.to_task_id (ewok.ipc.ipc_endpoints(id).to) = caller_id
+               ewok.ipc.ipc_endpoints(id).to = caller_id
             then
                ep_id := id;
             end if;
@@ -286,7 +286,7 @@ is
               (caller_id, TASK_MODE_MAINTHREAD, TASK_STATE_IPC_RECV_BLOCKED);
             return;
          else
-            set_return_value (caller_id, mode, SYS_E_BUSY);
+            TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -294,8 +294,8 @@ is
       end if;
 
       -- The syscall returns sender's ID
-      expected_sender   := ewok.ipc.ipc_endpoints(ep_id).from;
-      id_sender         := ewok.ipc.to_task_id (expected_sender);
+      id_sender         := ewok.ipc.ipc_endpoints(ep_id).from;
+      expected_sender   := ewok.ipc.to_ext_task_id (id_sender);
 
       -- Defensive programming test: should *never* happen
       if not TSK.is_real_user (id_sender) then
@@ -307,7 +307,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": recv(): IPC message overflows, buffer is too small"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -335,7 +335,7 @@ is
             -- data region in memory can not be accessed (even by the kernel).
             -- The following temporary open the access to sender's data.
             ewok.memory.map_code_and_data (id_sender);
-            set_return_value (id_sender, TASK_MODE_MAINTHREAD, SYS_E_DONE);
+            TSK.set_return_value (id_sender, TASK_MODE_MAINTHREAD, SYS_E_DONE);
             ewok.memory.map_code_and_data (caller_id);
 
             TSK.set_state
@@ -346,13 +346,16 @@ is
             TSK.set_state
               (id_sender, TASK_MODE_MAINTHREAD, TASK_STATE_FORCED);
 
+            if TSK.tasks_list(id_sender).ctx.frame_a = NULL then
+               raise program_error;
+            end if;
             TSK.tasks_list(id_sender).ctx.frame_a.all.PC :=
                TSK.tasks_list(id_sender).ctx.frame_a.all.PC - 2;
          when others =>
             null;
       end case;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
 
    end svc_ipc_do_recv;
@@ -375,11 +378,11 @@ is
 
       -- Who is the receiver ?
       id_receiver : ewok.tasks_shared.t_task_id
-         with address => params(1)'address;
+         with import, address => params(1)'address;
 
       -- Buffer size
       size  : unsigned_8
-         with address => params(2)'address;
+         with import, address => params(2)'address;
 
       -- Output buffer
       buf_address    : constant system.address := to_address (params(3));
@@ -403,7 +406,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): making IPCs while in ISR mode is not allowed!"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -412,7 +415,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): invalid id_receiver"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -422,7 +425,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): initialization not completed"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -434,7 +437,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): 'buffer' not in caller space"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -447,7 +450,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): id_receiver must be a user task"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -464,7 +467,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): receiver and sender are the same"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -474,7 +477,7 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): invalid size"));
-         set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -490,7 +493,7 @@ is
             & ": send() to "
             & TSK.tasks_list(id_receiver).name
             & ": domain not granted"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -502,7 +505,7 @@ is
             & ": send() to "
             & TSK.tasks_list(id_receiver).name
             & " not granted"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
@@ -514,11 +517,14 @@ is
       ep_id := ID_ENDPOINT_UNUSED;
 
       -- Creating a new EndPoint between the sender and the receiver
-      if TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver) = ID_ENDPOINT_UNUSED
+      if TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver)
+            = ID_ENDPOINT_UNUSED
       then
 
          -- Defensive programming test: should *never* happen
-         if TSK.tasks_list(id_receiver).ipc_endpoint_id(caller_id) /= ID_ENDPOINT_UNUSED then
+         if TSK.tasks_list(id_receiver).ipc_endpoint_id(caller_id)
+               /= ID_ENDPOINT_UNUSED
+         then
             raise program_error;
          end if;
 
@@ -526,6 +532,7 @@ is
          if not ok then
             -- FIXME
             debug.panic ("send(): EndPoint starvation !O_+");
+            raise program_error;
          end if;
 
          TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver) := ep_id;
@@ -551,7 +558,7 @@ is
       -- The receiver has already a pending message and the endpoint is already
       -- in use.
       if ewok.ipc.ipc_endpoints(ep_id).state = ewok.ipc.WAIT_FOR_RECEIVER and
-         ewok.ipc.to_task_id (ewok.ipc.ipc_endpoints(ep_id).to) = id_receiver
+         ewok.ipc.ipc_endpoints(ep_id).to = id_receiver
       then
          if blocking then
             TSK.set_state
@@ -569,7 +576,7 @@ is
 #end if;
             return;
          else
-            set_return_value (caller_id, mode, SYS_E_BUSY);
+            TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
             TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
             return;
          end if;
@@ -579,13 +586,13 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
             & ": send(): invalid endpoint state - maybe a dead lock"));
-         set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
 
-      ewok.ipc.ipc_endpoints(ep_id).from := ewok.ipc.to_ext_task_id (caller_id);
-      ewok.ipc.ipc_endpoints(ep_id).to   := ewok.ipc.to_ext_task_id (id_receiver);
+      ewok.ipc.ipc_endpoints(ep_id).from := caller_id;
+      ewok.ipc.ipc_endpoints(ep_id).to   := id_receiver;
 
       -- We copy the message in the IPC buffer
       -- Note: we don't use 'first attribute. By convention, array indexes
@@ -613,6 +620,9 @@ is
             -- or in registers)
             id : constant ewok.tasks_shared.t_task_id := id_receiver;
          begin
+            if TSK.tasks_list(id).ctx.frame_a = NULL then
+               raise program_error;
+            end if;
             ewok.memory.map_code_and_data (id);
             TSK.tasks_list(id).ctx.frame_a.all.PC :=
                TSK.tasks_list(id).ctx.frame_a.all.PC - 2;
@@ -634,7 +644,7 @@ is
 #end if;
          return;
       else
-         set_return_value (caller_id, mode, SYS_E_DONE);
+         TSK.set_return_value (caller_id, mode, SYS_E_DONE);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
       end if;
 

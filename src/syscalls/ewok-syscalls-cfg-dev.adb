@@ -41,7 +41,7 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       dev_descriptor : unsigned_8
-         with address => params(1)'address;
+         with import, address => params(1)'address;
       dev_id      : ewok.devices_shared.t_registered_device_id;
       ok          : boolean;
    begin
@@ -164,7 +164,7 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       dev_descriptor : unsigned_8
-         with address => params(1)'address;
+         with import, address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
    begin
 
@@ -264,7 +264,7 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       dev_descriptor : unsigned_8
-         with address => params(1)'address;
+         with import, address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
       ok             : boolean;
    begin

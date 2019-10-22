@@ -28,6 +28,7 @@ with ewok.exported.dma;
 with ewok.dma_shared;
 with ewok.mpu.allocator;
 with ewok.devices;
+with applications;
 with m4.mpu;
 
 
@@ -200,7 +201,11 @@ is
    procedure finished_task with no_return;
 
    function is_real_user (id : ewok.tasks_shared.t_task_id) return boolean
-      with inline_always;
+      with 
+         post =>
+           (if is_real_user'result then
+               id /= ID_UNUSED and
+               id in applications.t_real_task_id);
 
 #if CONFIG_KERNEL_DOMAIN
    function get_domain (id : in ewok.tasks_shared.t_task_id)

@@ -65,17 +65,23 @@ is
       ANY_APP     => 255);
 
    function to_task_id
-     (id : t_extended_task_id) return ewok.tasks_shared.t_task_id;
+     (id : t_extended_task_id) return ewok.tasks_shared.t_task_id
+   with
+      pre => id /= ANY_APP;
 
    function to_ext_task_id
-     (id : ewok.tasks_shared.t_task_id) return t_extended_task_id;
+     (id : ewok.tasks_shared.t_task_id) return t_extended_task_id
+   with
+      pre => id in ewok.tasks_shared.ID_UNUSED .. ewok.tasks_shared.ID_APP7;
 
    type t_endpoint is record
-      from  :  t_extended_task_id;
-      to    :  t_extended_task_id;
+      from  :  ewok.tasks_shared.t_task_id range
+                  ewok.tasks_shared.ID_UNUSED .. ewok.tasks_shared.ID_APP7;
+      to    :  ewok.tasks_shared.t_task_id range
+                  ewok.tasks_shared.ID_UNUSED .. ewok.tasks_shared.ID_APP7;
       state :  t_endpoint_state;
       data  :  byte_array (1 .. MAX_IPC_MSG_SIZE);
-      size  :  unsigned_8;
+      size  :  unsigned_8 range 0 .. MAX_IPC_MSG_SIZE;
    end record;
 
    --
@@ -103,7 +109,10 @@ is
    -- Get a free IPC endpoint
    procedure get_endpoint
      (endpoint    : out t_extended_endpoint_id;
-      success     : out boolean);
+      success     : out boolean)
+   with
+      post =>
+        (if success then endpoint /= ID_ENDPOINT_UNUSED);
 
    -- Release a used IPC endpoint
    procedure release_endpoint

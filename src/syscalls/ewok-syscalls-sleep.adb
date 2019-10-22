@@ -36,10 +36,10 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       sleep_time : unsigned_32
-         with address => params(1)'address;
+         with import, address => params(1)'address;
 
       sleep_mode : t_sleep_mode
-         with address => params(2)'address;
+         with import, address => params(2)'address;
    begin
 
       if mode = TASK_MODE_ISRTHREAD then

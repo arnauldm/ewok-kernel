@@ -41,7 +41,6 @@ is
    interrupt_table :
       array (soc.interrupts.t_interrupt) of aliased t_interrupt_cell;
 
-   procedure init;
 
    function is_interrupt_already_used
      (interrupt : soc.interrupts.t_interrupt) return boolean;

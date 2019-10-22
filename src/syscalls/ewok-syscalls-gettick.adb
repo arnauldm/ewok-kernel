@@ -38,10 +38,10 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
       value       : unsigned_64
-         with address => to_address (params(1));
+         with import, address => to_address (params(1));
 
       precision   : ewok.exported.ticks.t_precision
-         with address => params(2)'address;
+         with import, address => params(2)'address;
    begin
 
       --
