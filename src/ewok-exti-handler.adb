@@ -25,73 +25,15 @@ with soc.exti;             use soc.exti;
 with soc.syscfg;
 with soc.nvic;
 with soc.interrupts;
-with ewok.interrupts;
 with ewok.exported.gpios;  use type ewok.exported.gpios.t_interface_gpio_exti_lock;
 with ewok.gpio;
 with ewok.tasks_shared;
-with ewok.devices_shared;
 with ewok.isr;
 with ewok.debug;
 
 package body ewok.exti.handler
-   with spark_mode => off
+   with spark_mode => on
 is
-
-   procedure init
-   is
-   begin
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI0,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI1,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI2,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI3,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI4,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI9_5,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-      ewok.interrupts.set_interrupt_handler
-        (soc.interrupts.INT_EXTI15_10,
-         ewok.interrupts.DEFAULT_HANDLER,
-         to_system_address (exti_handler'address),
-         ewok.tasks_shared.ID_KERNEL,
-         ewok.devices_shared.ID_DEV_UNUSED);
-
-   end init;
-
 
    procedure handle_line
      (line        : in  soc.exti.t_exti_line_index;

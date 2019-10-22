@@ -25,7 +25,7 @@ with soc.nvic;
 with soc.syscfg;
 with soc.gpio;
 with ewok.exported.gpios;   use ewok.exported.gpios;
-with ewok.exti.handler;
+with ewok.exti.handler.unproved;
 
 package body ewok.exti
    with spark_mode => on
@@ -34,7 +34,7 @@ is
    procedure init
    is
    begin
-      ewok.exti.handler.init;
+      ewok.exti.handler.unproved.init;
       soc.exti.init;
    end init;
 

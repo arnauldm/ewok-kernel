@@ -28,6 +28,7 @@ with ewok.sched;
 with ewok.exported.interrupts;
 with soc.interrupts; use type soc.interrupts.t_interrupt;
 with soc.nvic;
+with soc.layout;
 with m4.cpu;
 
 #if CONFIG_DBGLEVEL >= 7
@@ -143,6 +144,15 @@ is
       -- (cf. ewok.posthook.exec)
       params(3) := req.params.posthook_status;
       params(4) := req.params.posthook_data;
+
+      if TSK.tasks_list(req.caller_id).isr_ctx.entry_point
+            < soc.layout.FLASH_BASE
+         or
+         TSK.tasks_list(req.caller_id).isr_ctx.entry_point
+            > soc.layout.FLASH_BASE + soc.layout.FLASH_SIZE
+      then
+         raise program_error;
+      end if;
 
       ewok.tasks.unproved.create_stack
         (ewok.layout.STACK_TOP_TASK_ISR,
