@@ -36,6 +36,7 @@ with soc.nvic;
 with soc.gpio;
 with soc.rcc;
 with types.c;
+with applications;
 
 package body ewok.devices
    with spark_mode => off
@@ -85,6 +86,9 @@ is
       return boolean
    is
    begin
+      if registered_device(dev_id).periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
       return soc.devmap.periphs(registered_device(dev_id).periph_id).ro;
    end is_device_region_ro;
 
@@ -93,6 +97,9 @@ is
       return m4.mpu.t_subregion_mask
    is
    begin
+      if registered_device(dev_id).periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
       return m4.mpu.to_subregion_mask
         (soc.devmap.periphs(registered_device(dev_id).periph_id).subregions);
    end get_device_subregions_mask;
@@ -173,8 +180,8 @@ is
       dev_id   : out t_device_id;
       success  : out boolean)
    is
-      periph_id: soc.devmap.t_periph_id;
-      len      : constant natural := types.c.len (udev.name);
+      len      : constant natural       := types.c.len (udev.name);
+      periph_id: soc.devmap.t_periph_id := NO_PERIPH;
       name     : string (1 .. len);
       found    : boolean;
       used     : boolean;
@@ -192,7 +199,8 @@ is
             soc.devmap.find_periph (udev.base_addr, udev.size);
          if periph_id = NO_PERIPH then
             pragma DEBUG (debug.log (debug.ERROR, "Device not existing: " & name));
-            success := false;
+            dev_id   := ID_DEV_UNUSED;
+            success  := false;
             return;
          end if;
       end if;
@@ -206,6 +214,7 @@ is
             registered_device(id).periph_id  = periph_id
          then
             pragma DEBUG (debug.log (debug.ERROR, "Device already used: " & name));
+            dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
          end if;
@@ -215,6 +224,7 @@ is
       for i in 1 .. udev.gpio_num loop
          if ewok.gpio.is_used (udev.gpios(i).kref) then
             pragma DEBUG (debug.log (debug.ERROR, "GPIOs already used: " & name));
+            dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
          end if;
@@ -226,6 +236,7 @@ is
             ewok.exti.is_used (udev.gpios(i).kref, used);
             if used then -- ...but it's already used!
                pragma DEBUG (debug.log (debug.ERROR, "EXTIs already used: " & name));
+               dev_id  := ID_DEV_UNUSED;
                success := false;
                return;
             end if;
@@ -249,6 +260,7 @@ is
 
          if not found then
             pragma DEBUG (debug.log (debug.ERROR, "Invalid interrupts: " & name));
+            dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
          end if;
@@ -260,6 +272,7 @@ is
               (udev.interrupts(i).interrupt)
          then
             pragma DEBUG (debug.log (debug.ERROR, "Interrupts already used: " & name));
+            dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
          end if;
@@ -270,6 +283,7 @@ is
 
       if not success then
          pragma DEBUG (debug.log (debug.ERROR, "register_device(): no free slot!"));
+         dev_id  := ID_DEV_UNUSED;
          return;
       end if;
 
@@ -355,6 +369,7 @@ is
 
       -- Releasing the device
       release_registered_device_entry (dev_id);
+      success := true;
 
    end release_device;
 
@@ -592,7 +607,12 @@ is
       end loop;
 
       if udev.map_mode = DEV_MAP_VOLUNTARY then
-         if not ewok.perm.ressource_is_granted (PERM_RES_MEM_DYNAMIC_MAP, task_id) then
+         if task_id not in applications.t_real_task_id'range then
+            raise program_error;
+         end if;
+         if not ewok.perm.ressource_is_granted
+                  (PERM_RES_MEM_DYNAMIC_MAP, task_id)
+         then
             pragma DEBUG (debug.log (debug.ERROR, name & ": voluntary mapping not permited"));
             return false;
         end if;

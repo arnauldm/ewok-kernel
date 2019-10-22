@@ -23,7 +23,6 @@
 
 with ewok.tasks;        use ewok.tasks;
 with ewok.tasks.unproved;
-with ewok.debug;
 with ewok.layout;
 with ewok.sched;
 with ewok.exported.interrupts;
@@ -78,10 +77,18 @@ is
 
    procedure isr_handler (req : in  t_isr_request)
    is
-      params   : t_parameters;
+      params   : t_parameters := (others => 0);
       config   : ewok.exported.interrupts.t_interrupt_config;
       ok       : boolean;
    begin
+
+      if req.caller_id = ID_UNUSED then
+         raise program_error;
+      end if;
+
+      if req.params.interrupt <= soc.interrupts.INT_SYSTICK then
+         raise program_error;
+      end if;
 
       -- For further MPU mapping of the device, we need to know which device
       -- triggered that interrupt.
@@ -165,6 +172,10 @@ is
             p_isr_requests.read (isr_queue, isr_req, ok);
             if not ok then
                exit;
+            end if;
+
+            if isr_req.caller_id = ID_UNUSED then
+               raise program_error;
             end if;
 
             if TSK.tasks_list(isr_req.caller_id).state /= TASK_STATE_LOCKED and

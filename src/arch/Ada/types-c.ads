@@ -18,16 +18,14 @@ is
 
    -- String conversion
    procedure to_c
-     (dst : out c_string;  src : in string);
+     (dst : out c_string;  src : in string)
+      with
+         pre => src'last >= src'first;
 
    procedure to_ada
-     (dst : out string;    src : in c_string);
-
-   --
-   -- C buffer
-   --
-
-   subtype c_buffer is byte_array;
+     (dst : out string;    src : in c_string)
+      with
+         pre => dst'last >= dst'first;
 
    --
    -- Boolean

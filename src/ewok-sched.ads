@@ -29,6 +29,7 @@ with ewok.debug;
 with applications;
 with m4.systick;
 with m4.mpu;
+with m4.scb;
 with soc.dwt;
 with soc.usart;
 
@@ -50,7 +51,8 @@ is
 
    procedure request_schedule
       with
-         inline;
+         inline,
+         global => (output => m4.scb.SCB);
 
    procedure task_elect
      (elected : out t_task_id)

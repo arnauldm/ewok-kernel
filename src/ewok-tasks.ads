@@ -262,12 +262,7 @@ is
       val   : in  unsigned_32)
       with
          inline,
-         pre    =>
-            id /= ID_UNUSED and then
-            (if mode = TASK_MODE_MAINTHREAD then
-                tasks_list(id).ctx.frame_a /= null
-             else
-               tasks_list(id).isr_ctx.frame_a /= null),
+         pre    => id /= ID_UNUSED,
          global => (in_out => tasks_list);
 
    function is_init_done

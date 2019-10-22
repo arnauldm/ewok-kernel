@@ -99,6 +99,8 @@ is
    function sanitize_user_defined_device
      (udev     : in  ewok.exported.devices.t_user_device;
       task_id  : in  t_task_id)
-      return boolean;
+      return boolean
+   with
+      pre => task_id /= ID_UNUSED;
 
 end ewok.devices;

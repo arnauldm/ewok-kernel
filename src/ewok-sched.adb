@@ -26,7 +26,6 @@ with ewok.tasks;           use ewok.tasks;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.sleep;           use type ewok.sleep.t_sleeping_state;
 with ewok.memory;
-with m4.scb;
 
 
 package body ewok.sched

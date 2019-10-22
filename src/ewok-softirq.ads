@@ -25,8 +25,10 @@ with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.tasks;
 with ewok.interrupts;
 with ewok.devices;
+with ewok.debug;
 with soc.interrupts;
 with m4.scb;
+with soc.usart;
 with rings;
 
 package ewok.softirq
@@ -79,11 +81,15 @@ is
          global =>
            (input  =>
               (ewok.interrupts.interrupt_table,
-               ewok.devices.registered_device),
+               ewok.devices.registered_device,
+               ewok.debug.kernel_usart_id),
             in_out =>
               (ewok.tasks.tasks_list,
                isr_queue,
                previous_isr_owner,
-               m4.scb.SCB));
+               m4.scb.SCB,
+               soc.usart.usart1,
+               soc.usart.uart4,
+               soc.usart.usart6));
 
 end ewok.softirq;

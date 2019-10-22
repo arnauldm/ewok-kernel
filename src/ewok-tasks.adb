@@ -302,8 +302,14 @@ is
    begin
       case mode is
          when TASK_MODE_MAINTHREAD =>
+            if tasks_list(id).ctx.frame_a = NULL then
+               raise program_error;
+            end if;
             tasks_list(id).ctx.frame_a.all.R0      := val;
          when TASK_MODE_ISRTHREAD =>
+            if tasks_list(id).isr_ctx.frame_a = NULL then
+               raise program_error;
+            end if;
             tasks_list(id).isr_ctx.frame_a.all.R0  := val;
       end case;
    end set_return_value;

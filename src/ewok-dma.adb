@@ -31,12 +31,13 @@ with ewok.debug;
 with ewok.perm;
 #end if;
 
+with soc.interrupts;       use type soc.interrupts.t_interrupt;
 with soc.dma;              use soc.dma;
 with soc.dma.interfaces;   use soc.dma.interfaces;
 with soc.nvic;
 
 package body ewok.dma
-   with spark_mode => off
+   with spark_mode => on
 is
 
 
@@ -155,12 +156,24 @@ is
       periph_id : constant soc.devmap.t_periph_id :=
          registered_dma(index).periph_id;
 
-      -- DMAs have only one IRQ line per stream
-      intr  : constant soc.interrupts.t_interrupt :=
-         soc.devmap.periphs(periph_id).interrupt_list
-           (soc.devmap.t_interrupt_range'first);
    begin
-      soc.nvic.enable_irq (soc.nvic.to_irq_number (intr));
+
+      if periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
+
+      declare
+         -- DMAs have only one IRQ line per stream
+         intr  : constant soc.interrupts.t_interrupt :=
+            soc.devmap.periphs(periph_id).interrupt_list
+              (soc.devmap.t_interrupt_range'first);
+      begin
+         if intr < soc.interrupts.INT_WWDG then
+            raise program_error;
+         end if;
+         soc.nvic.enable_irq (soc.nvic.to_irq_number (intr));
+      end;
+
    end enable_dma_irq;
 
 
@@ -314,6 +327,10 @@ is
       periph_id   : constant soc.devmap.t_periph_id := registered_dma(index).periph_id;
    begin
 
+      if periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
+
       if not to_configure.buffer_size then
          user_config.size := registered_dma(index).config.bytes;
       else
@@ -361,6 +378,10 @@ is
                registered_dma(index).config.out_handler :=
                   user_config.out_handler;
 
+               if user_config.out_handler = 0 then
+                  raise program_error;
+               end if;
+
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list(soc.devmap.t_interrupt_range'first),
                   ewok.interrupts.DEFAULT_HANDLER,
@@ -371,6 +392,10 @@ is
             when MEMORY_TO_PERIPHERAL  =>
                registered_dma(index).config.in_handler :=
                   user_config.in_handler;
+
+               if user_config.in_handler = 0 then
+                  raise program_error;
+               end if;
 
                ewok.interrupts.set_interrupt_handler
                  (soc.devmap.periphs(periph_id).interrupt_list (soc.devmap.t_interrupt_range'first),
@@ -389,6 +414,10 @@ is
       --
       -- Configuring the DMA
       --
+
+      if registered_dma(index).config.transfer_dir = MEMORY_TO_MEMORY then
+         raise program_error;
+      end if;
 
       soc.dma.interfaces.reconfigure_stream
         (registered_dma(index).config.dma_id,
@@ -456,6 +485,10 @@ is
             soc.dma.t_stream_index (user_config.stream));
 
       periph_id := registered_dma(index).periph_id;
+
+      if periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
 
       -- Set up the interrupt handler
       case user_config.transfer_dir is
