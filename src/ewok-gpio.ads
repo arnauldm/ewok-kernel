@@ -74,7 +74,7 @@ is
      (ref      : in  ewok.exported.gpios.t_gpio_ref)
       return ewok.exported.gpios.t_gpio_config;
 
-private
+--private
 
    type t_gpio_state is record
       used        : boolean                           := false;

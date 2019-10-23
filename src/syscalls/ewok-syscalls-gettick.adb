@@ -20,25 +20,27 @@
 --
 --
 
+with system;
+
 with ewok.perm;            use ewok.perm;
 with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.exported.ticks;  use ewok.exported.ticks;
 with ewok.sanitize;
 with ewok.debug;
-with soc.dwt;
 
 
 package body ewok.syscalls.gettick
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_gettick
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
    is
-      value       : unsigned_64
-         with import, address => to_address (params(1));
+      value_address  : constant system.address := to_address (params(1));
+      value          : unsigned_64
+         with import, address => value_address;
 
       precision   : ewok.exported.ticks.t_precision
          with import, address => params(2)'address;
@@ -49,16 +51,20 @@ is
       --
 
       if not ewok.sanitize.is_range_in_data_slot
-               (to_system_address (value'address), 8, caller_id, mode)
+               (to_system_address (value_address), 8, caller_id, mode)
       then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": svc_gettick(): 'value' parameter not in caller space"));
-         goto ret_inval;
+         set_return_value (caller_id, mode, SYS_E_INVAL);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       if not precision'valid then
-         goto ret_inval;
+         set_return_value (caller_id, mode, SYS_E_INVAL);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Verifying permisions
@@ -67,7 +73,9 @@ is
             if not ewok.perm.ressource_is_granted
                (PERM_RES_TIM_GETMILLI, caller_id)
             then
-               goto ret_denied;
+               set_return_value (caller_id, mode, SYS_E_DENIED);
+               ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+               return;
             end if;
             soc.dwt.get_milliseconds (value);
 
@@ -75,7 +83,9 @@ is
             if not ewok.perm.ressource_is_granted
                (PERM_RES_TIM_GETMICRO, caller_id)
             then
-               goto ret_denied;
+               set_return_value (caller_id, mode, SYS_E_DENIED);
+               ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+               return;
             end if;
             soc.dwt.get_microseconds (value);
 
@@ -83,24 +93,15 @@ is
             if not ewok.perm.ressource_is_granted
                (PERM_RES_TIM_GETCYCLE, caller_id)
             then
-               goto ret_denied;
+               set_return_value (caller_id, mode, SYS_E_DENIED);
+               ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+               return;
             end if;
             soc.dwt.get_cycles (value);
       end case;
 
       set_return_value (caller_id, mode, SYS_E_DONE);
       ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
 
    end svc_gettick;
 

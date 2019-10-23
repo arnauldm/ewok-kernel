@@ -292,8 +292,7 @@ is
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre    => id /= ID_UNUSED and then
-                   tasks_list(id).num_devs >= 1,
+         pre => id /= ID_UNUSED, 
          global => (in_out => tasks_list);
 
    function is_mounted
@@ -321,7 +320,7 @@ is
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre    => id /= ID_UNUSED,
+         pre => id /= ID_UNUSED, 
          global =>
            (input => ewok.devices.registered_device,
             in_out =>

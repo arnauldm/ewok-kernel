@@ -23,11 +23,10 @@
 with ewok.debug;
 with ewok.exported.devices;   use ewok.exported.devices;
 with ewok.devices_shared;     use ewok.devices_shared;
-with ewok.devices;
 
 
 package body ewok.syscalls.cfg.dev
-   with spark_mode => off
+   with spark_mode => on
 is
 
    --pragma debug_policy (IGNORE);
@@ -40,8 +39,10 @@ is
       params      : in out t_parameters;
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
+
       dev_descriptor : unsigned_8
          with import, address => params(1)'address;
+
       dev_id      : ewok.devices_shared.t_registered_device_id;
       ok          : boolean;
    begin
@@ -163,7 +164,7 @@ is
       params      : in out t_parameters;
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
-      dev_descriptor : unsigned_8
+      dev_descriptor : t_device_descriptor
          with import, address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
    begin
@@ -197,8 +198,7 @@ is
       end if;
 
       -- Valid device descriptor ?
-      if dev_descriptor not in TSK.tasks_list(caller_id).devices'range
-      then
+      if not dev_descriptor'valid then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_unmap(): invalid device descriptor"));
@@ -263,7 +263,7 @@ is
       params      : in out t_parameters;
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
-      dev_descriptor : unsigned_8
+      dev_descriptor : t_device_descriptor
          with import, address => params(1)'address;
       dev_id         : ewok.devices_shared.t_registered_device_id;
       ok             : boolean;
@@ -280,8 +280,7 @@ is
       end if;
 
       -- Valid device descriptor ?
-      if dev_descriptor not in TSK.tasks_list(caller_id).devices'range
-      then
+      if not dev_descriptor'valid then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_release(): invalid device descriptor"));

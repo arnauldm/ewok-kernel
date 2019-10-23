@@ -20,8 +20,9 @@
 --
 --
 
-with ewok.tasks_shared;
 with ewok.tasks;        use ewok.tasks;
+with ewok.tasks_shared;
+with soc.dwt;
 with applications;
 
 package ewok.syscalls.gettick
@@ -29,11 +30,20 @@ package ewok.syscalls.gettick
 is
 
    procedure svc_gettick
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
       with
-         pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         pre =>
+            caller_id in applications.t_real_task_id and
+            soc.dwt.init_done,
+         global =>
+           (input =>
+               soc.dwt.dwt_loops,
+            in_out =>
+              (tasks_list,
+               soc.dwt.DWT_CYCCNT),
+            proof_in =>
+               soc.dwt.init_done);
 
 end ewok.syscalls.gettick;

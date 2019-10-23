@@ -214,6 +214,12 @@ is
       dev_descriptor : in  t_device_descriptor)
    is
    begin
+      if tasks_list(id).devices(dev_descriptor).device_id = ID_DEV_UNUSED then
+         raise program_error;
+      end if;
+      if tasks_list(id).num_devs < 1 then
+         raise program_error;
+      end if;
       tasks_list(id).devices(dev_descriptor).device_id := ID_DEV_UNUSED;
       tasks_list(id).devices(dev_descriptor).mounted   := false;
       tasks_list(id).num_devs := tasks_list(id).num_devs - 1;
