@@ -53,14 +53,24 @@ is
    function has_same_dma_channel
      (index       : ewok.dma_shared.t_registered_dma_index;
       user_config : ewok.exported.dma.t_dma_user_config)
-      return boolean;
+      return boolean
+   with
+      global =>
+        (input => registered_dma);
 
    function stream_is_already_used
      (user_config : ewok.exported.dma.t_dma_user_config)
       return boolean;
 
    procedure enable_dma_stream
-     (index : in ewok.dma_shared.t_registered_dma_index);
+     (index : in ewok.dma_shared.t_registered_dma_index)
+   with
+      global =>
+        (input  =>
+            registered_dma,
+         in_out =>
+           (soc.dma.DMA1,
+            soc.dma.DMA2));
 
    procedure disable_dma_stream
      (index : in ewok.dma_shared.t_registered_dma_index);

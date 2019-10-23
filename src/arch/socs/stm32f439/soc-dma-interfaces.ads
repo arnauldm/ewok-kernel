@@ -86,11 +86,21 @@ is
 
    procedure enable_stream
      (dma_id  : in  soc.dma.t_dma_periph_index;
-      stream  : in  soc.dma.t_stream_index);
+      stream  : in  soc.dma.t_stream_index)
+   with
+      global =>
+        (in_out =>
+           (soc.dma.DMA1,
+            soc.dma.DMA2));
 
    procedure disable_stream
      (dma_id  : in  soc.dma.t_dma_periph_index;
-      stream  : in  soc.dma.t_stream_index);
+      stream  : in  soc.dma.t_stream_index)
+   with
+      global =>
+        (in_out =>
+           (soc.dma.DMA1,
+            soc.dma.DMA2));
 
    procedure clear_interrupt
      (dma_id      : in  soc.dma.t_dma_periph_index;

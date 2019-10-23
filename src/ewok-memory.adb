@@ -26,6 +26,7 @@ with ada.unchecked_conversion;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.tasks;           use type ewok.tasks.t_task_type;
 with ewok.layout;
+with ewok.debug;
 
 package body ewok.memory
    with spark_mode => on
@@ -99,7 +100,7 @@ is
       if not success then
          pragma DEBUG
            (debug.log ("mpu_mapping_device(): can not be mapped"));
-         raise program_error;
+         null;
       end if;
 
    end map_device;

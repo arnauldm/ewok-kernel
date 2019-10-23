@@ -28,8 +28,8 @@ with ewok.devices_shared;
 with ewok.devices;
 with ewok.mpu;
 with ewok.mpu.allocator;
-with ewok.debug;
 with m4.mpu;
+with m4.scb;
 with soc.usart;
 
 package ewok.memory
@@ -81,12 +81,12 @@ is
                    id = ID_SOFTIRQ or
                    id = ID_KERNEL,
          global => (input  => (ewok.tasks.tasks_list,
-                               ewok.devices.registered_device,
-                               ewok.debug.kernel_usart_id),
+                               ewok.devices.registered_device),
                     in_out => (m4.mpu.MPU,
                                soc.usart.usart1,
                                soc.usart.uart4,
-                               soc.usart.usart6),
+                               soc.usart.usart6,
+                               m4.scb.SCB),
                     output => ewok.mpu.allocator.regions_pool);
 
 end ewok.memory;

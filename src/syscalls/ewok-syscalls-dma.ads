@@ -19,9 +19,12 @@
 --     limitations under the License.
 --
 --
-
-with ewok.tasks_shared;
 with ewok.tasks;        use ewok.tasks;
+with ewok.tasks_shared;
+with ewok.devices;
+with ewok.dma;
+with ewok.interrupts;
+with soc.dma;
 with applications;
 
 package ewok.syscalls.dma
@@ -34,7 +37,15 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input =>
+              (ewok.devices.registered_device),
+            in_out =>
+              (tasks_list,
+               ewok.interrupts.interrupt_table,
+               ewok.dma.registered_dma,
+               soc.dma.DMA1,
+               soc.dma.DMA2));
 
    procedure svc_register_dma_shm
      (caller_id   : in ewok.tasks_shared.t_task_id;
@@ -42,31 +53,55 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input =>
+              (ewok.devices.registered_device),
+            in_out =>
+              (tasks_list));
 
    procedure svc_dma_reconf
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input =>
+              (ewok.devices.registered_device),
+            in_out =>
+              (tasks_list,
+               ewok.interrupts.interrupt_table,
+               ewok.dma.registered_dma,
+               soc.dma.DMA1,
+               soc.dma.DMA2));
 
    procedure svc_dma_reload
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input =>
+              (ewok.dma.registered_dma),
+            in_out =>
+              (tasks_list,
+               soc.dma.DMA1,
+               soc.dma.DMA2));
 
    procedure svc_dma_disable
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input =>
+               ewok.dma.registered_dma,
+            in_out =>
+              (tasks_list,
+               soc.dma.DMA1,
+               soc.dma.DMA2));
 
 
 end ewok.syscalls.dma;
