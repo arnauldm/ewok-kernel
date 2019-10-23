@@ -23,58 +23,49 @@
 with ewok.tasks;        use ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.sched;
-with ewok.sleep;
 with ewok.exported.sleep; use ewok.exported.sleep;
 
 package body ewok.syscalls.sleep
-   with spark_mode => off
+   with spark_mode => on
 is
 
-   procedure svc_sleep
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
-   is
-      sleep_time : unsigned_32
-         with import, address => params(1)'address;
+   package TSK renames ewok.tasks;
 
-      sleep_mode : t_sleep_mode
+   procedure svc_sleep
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
+   is
+      sleep_time : constant unsigned_32 := params(1);
+
+      sleep_mode : constant t_sleep_mode
          with import, address => params(2)'address;
    begin
 
       if mode = TASK_MODE_ISRTHREAD then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       if not sleep_mode'valid then
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
-      if ewok.tasks.is_ipc_waiting (caller_id) then
-         goto ret_busy;
+      if TSK.is_ipc_waiting (caller_id) then
+         TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       ewok.sleep.do_sleeping (caller_id, milliseconds (sleep_time), sleep_mode);
 
       -- Note: state set by ewok.sleep.sleeping procedure
-      set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       ewok.sched.request_schedule;
-      return;
 
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_busy>>
-      set_return_value (caller_id, mode, SYS_E_BUSY);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
    end svc_sleep;
 
 end ewok.syscalls.sleep;

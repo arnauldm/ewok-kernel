@@ -42,7 +42,10 @@ is
    is
       dma_config_address   : constant system.address := to_address (params(1));
       dma_config           : ewok.exported.dma.t_dma_user_config
-         with import, address => dma_config_address;
+         with
+            import, address => dma_config_address,
+            size => 320; -- Needed by SPARK. That value is obtained by
+                         -- compiling with '-gnatR'
 
       dma_descriptor_address   : constant system.address := to_address (params(2));
       dma_descriptor           : unsigned_32
@@ -184,7 +187,10 @@ is
    is
       user_dma_shm_address : constant system.address := to_address (params(1));
       user_dma_shm         : ewok.exported.dma.t_dma_shm_info
-         with import, address => user_dma_shm_address;
+         with
+            import, address => user_dma_shm_address,
+            size => 128; -- Needed by SPARK (see comment above)
+
       granted_id           : ewok.tasks_shared.t_task_id;
    begin
 
@@ -290,7 +296,9 @@ is
       new_dma_config_address  : constant system.address
          := to_address (params(1));
       new_dma_config          : ewok.exported.dma.t_dma_user_config
-         with import, address => new_dma_config_address;
+         with
+            import, address => new_dma_config_address,
+            size => 320; -- Needed by SPARK (see comment above)
 
       config_mask    : constant ewok.exported.dma.t_config_mask
          with import, address => params(2)'address;

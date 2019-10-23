@@ -14,6 +14,7 @@ library project Libkernel is
       "-gnatet=target.atp",
       "-gnatec=" & Libkernel'Project_Dir & "libkernel.adc",
       "-gnatn",         -- Enable pragma Inline
+      "-gnatRs",        -- Represantation clauses in files
       "-gnatwa",        -- Turn on all warnings
       "-gnatw.X",       -- Turn off warnings for export/import
       "-gnatwe");       -- Treat all warnings as errors

@@ -22,18 +22,30 @@
 
 with ewok.tasks_shared;
 with ewok.tasks;
+with ewok.sleep;
+with ewok.ipc;
 with applications;
+with m4.scb;
+with m4.systick;
 
 package ewok.syscalls.sleep
    with spark_mode => on
 is
 
    procedure svc_sleep
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in ewok.tasks_shared.t_task_id;
+      params      : in t_parameters;
+      mode        : in ewok.tasks_shared.t_task_mode)
    with
-      global => (in_out => ewok.tasks.tasks_list),
-      pre => caller_id in applications.t_real_task_id;
+      pre =>
+         caller_id in applications.t_real_task_id,
+      global =>
+        (input  =>
+           (m4.systick.ticks,
+            ewok.ipc.ipc_endpoints),
+         in_out =>
+           (ewok.tasks.tasks_list,
+            ewok.sleep.awakening_time,
+            m4.scb.SCB));
 
 end ewok.syscalls.sleep;
