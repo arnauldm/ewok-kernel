@@ -197,6 +197,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       -- Valid device descriptor ?
       if not dev_descriptor'valid then
          pragma DEBUG (debug.log (debug.ERROR,
@@ -278,6 +280,8 @@ is
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
+
+      pragma warnings (off, "attribute Valid is assumed to return True");
 
       -- Valid device descriptor ?
       if not dev_descriptor'valid then

@@ -33,7 +33,7 @@ with ewok.sched;
 with ewok.debug;
 
 package body ewok.syscalls.init
-   with spark_mode => on
+   with spark_mode => off
 is
 
    package TSK renames ewok.tasks;

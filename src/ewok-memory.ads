@@ -30,7 +30,6 @@ with ewok.mpu;
 with ewok.mpu.allocator;
 with m4.mpu;
 with m4.scb;
-with soc.usart;
 
 package ewok.memory
    with spark_mode => on
@@ -83,9 +82,6 @@ is
          global => (input  => (ewok.tasks.tasks_list,
                                ewok.devices.registered_device),
                     in_out => (m4.mpu.MPU,
-                               soc.usart.usart1,
-                               soc.usart.uart4,
-                               soc.usart.usart6,
                                m4.scb.SCB),
                     output => ewok.mpu.allocator.regions_pool);
 

@@ -477,6 +477,8 @@ is
 
       for i in 1 .. MAX_POSTHOOK_INSTR loop
 
+         pragma warnings (off, "attribute Valid is assumed to return True");
+
          if not config.posthook.action(i).instr'valid then
             pragma DEBUG (debug.log (debug.ERROR, "Posthook: invalid action requested"));
             return false;
@@ -566,6 +568,8 @@ is
          pragma DEBUG (debug.log (debug.ERROR, "EXTI handler not in .text section"));
          return false;
       end if;
+
+      pragma warnings (off, "attribute Valid is assumed to return True");
 
       if not config.exti_lock'valid
       then

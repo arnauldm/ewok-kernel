@@ -75,6 +75,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       -- Ada based sanitation using on types compliance
       if not dma_config.controller'valid     or
          not dma_config.stream'valid         or
@@ -200,6 +202,8 @@ is
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
+
+      pragma warnings (off, "attribute Valid is assumed to return True");
 
       -- Ada based sanitation using on types compliance
       if not user_dma_shm.granted_id'valid   or

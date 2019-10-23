@@ -37,6 +37,8 @@ is
       bfar  : constant system_address := m4.scb.SCB.BFAR.ADDRESS;
    begin
 
+      pragma warnings (off, "statement has no effect");
+
       if cfsr.MMFSR.IACCVIOL  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.IACCVIOL")); end if;
       if cfsr.MMFSR.DACCVIOL  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.DACCVIOL")); end if;
       if cfsr.MMFSR.MUNSTKERR then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.MMFSR.MUNSTKERR")); end if;
@@ -64,6 +66,8 @@ is
       if cfsr.UFSR.NOCP       then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.NOCP")); end if;
       if cfsr.UFSR.UNALIGNED  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.UNALIGNED")); end if;
       if cfsr.UFSR.DIVBYZERO  then pragma DEBUG (DBG.log (DBG.ERROR, "+cfsr.UFSR.DIVBYZERO")); end if;
+
+      pragma warnings (on, "statement has no effect");
 
       if ewok.sched.current_task_id /= ID_UNUSED then
          DBG.log (DBG.ERROR, ewok.tasks.tasks_list(ewok.sched.current_task_id).name);

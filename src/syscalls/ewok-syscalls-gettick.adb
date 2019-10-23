@@ -61,6 +61,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       if not precision'valid then
          set_return_value (caller_id, mode, SYS_E_INVAL);
          ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);

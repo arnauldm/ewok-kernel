@@ -48,6 +48,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       if not sleep_mode'valid then
          TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);

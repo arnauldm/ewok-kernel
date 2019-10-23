@@ -97,12 +97,6 @@ is
          subregion_mask => ewok.devices.get_device_subregions_mask (dev_id),
          success        => success);
 
-      if not success then
-         pragma DEBUG
-           (debug.log ("mpu_mapping_device(): can not be mapped"));
-         null;
-      end if;
-
    end map_device;
 
 

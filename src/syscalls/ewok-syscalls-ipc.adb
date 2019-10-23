@@ -105,6 +105,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       if not expected_sender'valid then
          pragma DEBUG (debug.log (debug.ERROR,
             TSK.tasks_list(caller_id).name
@@ -410,6 +412,8 @@ is
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
+
+      pragma warnings (off, "attribute Valid is assumed to return True");
 
       if not id_receiver'valid then
          pragma DEBUG (debug.log (debug.ERROR,
