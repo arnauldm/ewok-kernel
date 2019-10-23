@@ -20,8 +20,20 @@
 --
 --
 
-with ewok.tasks_shared;
 with ewok.tasks;        use ewok.tasks;
+with ewok.tasks_shared;
+with ewok.devices;
+with ewok.mpu.allocator;
+with ewok.exti;
+with ewok.interrupts;
+with ewok.gpio;
+with ewok.dma;
+with soc.rcc;
+with soc.exti;
+with soc.nvic;
+with soc.syscfg;
+with m4.mpu;
+with m4.scb;
 with applications;
 
 package ewok.syscalls.init
@@ -34,14 +46,32 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (in_out =>
+              (tasks_list,
+               ewok.devices.registered_device,
+               ewok.exti.exti_line_registered,
+               ewok.interrupts.interrupt_table,
+               ewok.mpu.allocator.regions_pool,
+               ewok.gpio.gpio_points,
+               m4.mpu.MPU,
+               soc.exti.EXTI,
+               soc.syscfg.syscfg));
 
    procedure svc_init_done
      (caller_id   : in  ewok.tasks_shared.t_task_id;
       mode        : in  ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input => ewok.dma.registered_dma,
+            in_out =>
+              (tasks_list,
+               ewok.devices.registered_device,
+               m4.scb.SCB,
+               soc.rcc.RCC,
+               soc.exti.EXTI,
+               soc.nvic.NVIC));
 
    procedure svc_get_taskid
      (caller_id   : in ewok.tasks_shared.t_task_id;

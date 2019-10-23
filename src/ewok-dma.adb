@@ -155,7 +155,6 @@ is
       -- Peripheral associated with the DMA stream
       periph_id : constant soc.devmap.t_periph_id :=
          registered_dma(index).periph_id;
-
    begin
 
       if periph_id = soc.devmap.NO_PERIPH then

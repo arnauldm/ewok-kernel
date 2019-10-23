@@ -20,19 +20,20 @@
 --
 --
 
+with system;
+
 with ewok.tasks_shared;       use ewok.tasks_shared;
 with ewok.devices_shared;     use ewok.devices_shared;
 with ewok.exported.devices;   use ewok.exported.devices;
-with ewok.devices;
+with ewok.dma_shared;         use ewok.dma_shared;
 with ewok.sanitize;
-with ewok.dma;
 with ewok.memory;
 with ewok.perm;
 with ewok.sched;
 with ewok.debug;
 
 package body ewok.syscalls.init
-   with spark_mode => off
+   with spark_mode => on
 is
 
    package TSK renames ewok.tasks;
@@ -44,12 +45,16 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
    is
 
-      udev     : aliased ewok.exported.devices.t_user_device
-         with import, address => to_address (params(1));
+      udev_address : constant system.address := to_address (params(1));
+      udev         : ewok.exported.devices.t_user_device
+         with
+            import, address => udev_address,
+            size => 11232; -- Required by SPARK
 
       -- Device descriptor transmitted to userspace
-      descriptor  : unsigned_8 range 0 .. ewok.tasks.MAX_DEVS_PER_TASK
-         with address => to_address (params(2));
+      descriptor_address : constant system.address := to_address (params(2));
+      descriptor  : unsigned_8 range 0 .. TSK.MAX_DEVS_PER_TASK
+         with address => descriptor_address;
 
       dev_id   : ewok.devices_shared.t_device_id;
       ok       : boolean;
@@ -57,7 +62,9 @@ is
 
       -- Forbidden after end of task initialization
       if TSK.is_init_done (caller_id) then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- NOTE
@@ -66,48 +73,59 @@ is
       --    RAM (.data section) or in flash (.rodata section)
       if TSK.is_real_user (caller_id) and then
         (not ewok.sanitize.is_range_in_data_slot
-               (to_system_address (udev'address),
+               (to_system_address (udev_address),
                 udev'size/8,
                 caller_id,
                 mode)
          and
          not ewok.sanitize.is_range_in_txt_slot
-               (to_system_address (udev'address),
+               (to_system_address (udev_address),
                 udev'size/8,
                 caller_id))
       then
          pragma DEBUG (debug.log (debug.ERROR,
             "svc_register_device(): udev not in task's memory space"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       if TSK.is_real_user (caller_id) and then
          not ewok.sanitize.is_word_in_data_slot
-               (to_system_address (descriptor'address), caller_id, mode)
+               (to_system_address (descriptor_address), caller_id, mode)
       then
          pragma DEBUG (debug.log (debug.ERROR,
             "svc_register_device(): descriptor not in task's memory space"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Ada based sanitization
+      -- /!\ Should be remove for SPARK verification
       if not udev'valid_scalars
       then
          pragma DEBUG (debug.log (debug.ERROR, "svc_register_device(): invalid udev scalars"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       if TSK.is_real_user (caller_id) and then
          not ewok.devices.sanitize_user_defined_device (udev, caller_id)
       then
          pragma DEBUG (debug.log (debug.ERROR, "svc_register_device(): invalid udev"));
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       if TSK.tasks_list(caller_id).num_devs = TSK.MAX_DEVS_PER_TASK then
          pragma DEBUG (debug.log (debug.ERROR,
             "svc_register_device(): no space left to register the device"));
-         goto ret_busy;
+         TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Device should be automatically mapped...
@@ -117,7 +135,9 @@ is
       then
          pragma DEBUG (debug.log (debug.ERROR,
             "svc_register_device(): no free region left to map the device"));
-         goto ret_busy;
+         TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       --
@@ -129,7 +149,9 @@ is
       if not ok then
          pragma DEBUG (debug.log (debug.ERROR,
             "svc_register_device(): failed to register the device"));
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       --
@@ -149,24 +171,8 @@ is
          end if;
       end if;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_busy>>
-      set_return_value (caller_id, mode, SYS_E_BUSY);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
 
    end svc_register_device;
 
@@ -181,7 +187,9 @@ is
 
       -- Forbidden after end of task initialization
       if TSK.is_init_done (caller_id) then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- We enable auto mapped devices (MAP_AUTO)
@@ -193,31 +201,36 @@ is
                -- FIXME - Create new syscalls for enabling/disabling devices?
                ewok.devices.enable_device (dev_id, ok);
                if not ok then
-                  goto ret_denied;
+                  TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+                  TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+                  return;
                end if;
             end if;
          end if;
       end loop;
 
       for i in 1 .. TSK.tasks_list(caller_id).num_dma_id loop
-         ewok.dma.enable_dma_irq (TSK.tasks_list(caller_id).dma_id(i));
+         declare
+            index : constant ewok.dma_shared.t_user_dma_index
+               := TSK.tasks_list(caller_id).dma_id(i);
+         begin
+            if index = ewok.dma_shared.ID_DMA_UNUSED then
+               raise program_error;
+            end if;
+            ewok.dma.enable_dma_irq (index);
+         end;
       end loop;
 
       TSK.tasks_list(caller_id).init_done := true;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
 
       -- Request a schedule to ensure that the task has its devices mapped
       -- afterward
       -- FIXME - has to be changed when device mapping will be synchronously done
       ewok.sched.request_schedule;
-      return;
 
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
    end svc_init_done;
 
 
@@ -230,8 +243,9 @@ is
       target_name : ewok.tasks_shared.t_task_name
          with address => to_address (params(1));
 
+      target_id_address : constant system.address := to_address (params(2));
       target_id   : ewok.tasks_shared.t_task_id
-         with address => to_address (params(2));
+         with address => target_id_address;
 
       tmp_id      : ewok.tasks_shared.t_task_id;
 
@@ -239,14 +253,18 @@ is
 
       -- Forbidden after end of task initialization
       if TSK.is_init_done (caller_id) then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Does &target_id is in the caller address space ?
       if not ewok.sanitize.is_word_in_data_slot
-               (to_system_address (target_id'address), caller_id, mode)
+               (to_system_address (target_id_address), caller_id, mode)
       then
-         goto ret_denied;
+         TSK.set_return_value (caller_id, mode, SYS_E_DENIED);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- We retrieve the 'id' related to the target name. Before updating the
@@ -254,13 +272,17 @@ is
       -- allowed to communicate
       tmp_id := TSK.get_task_id (target_name);
 
-      if tmp_id = ID_UNUSED then
-         goto ret_inval;
+      if not is_real_user (tmp_id) then
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
 #if CONFIG_KERNEL_DOMAIN
       if TSK.get_domain (tmp_id) /= TSK.get_domain (caller_id) then
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 #end if;
 
@@ -268,25 +290,17 @@ is
       if not ewok.perm.ipc_is_granted (caller_id, tmp_id) and
          not ewok.perm.dmashm_is_granted (caller_id, tmp_id)
       then
-         goto ret_inval;
+         TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
+         TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- We may update the target_id
       target_id := tmp_id;
 
-      set_return_value (caller_id, mode, SYS_E_DONE);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
+      TSK.set_return_value (caller_id, mode, SYS_E_DONE);
+      TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
 
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
    end svc_get_taskid;
 
 end ewok.syscalls.init;
