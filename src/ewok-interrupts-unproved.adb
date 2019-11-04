@@ -37,6 +37,7 @@ is
       m4.scb.SCB.SHCSR.USGFAULTENA := true;
       m4.scb.SCB.SHCSR.BUSFAULTENA := true;
 
+      -- FIXME - Redundant with default clause. Really needed ?
       for i in interrupt_table'range loop
          interrupt_table(i) :=
            (handler_type   => DEFAULT_HANDLER,

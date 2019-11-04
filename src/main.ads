@@ -1,4 +1,9 @@
+with soc.dwt;
 
-
-procedure main;
-pragma export (c, main, "ewok_main");
+procedure main
+   with
+      spark_mode      => on,
+      convention      => c,
+      export          => true,
+      external_name   => "ewok_main",
+      pre             => not soc.dwt.init_done;

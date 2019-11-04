@@ -25,17 +25,6 @@ with m4.systick;
 package body soc.dwt
    with spark_mode => on
 is
-   -----------------------------------------------------
-   -- SPARK ghost functions and procedures
-   -----------------------------------------------------
-
-   function init_is_done
-      return boolean
-   is
-   begin
-      return init_done;
-   end init_is_done;
-
 
    function check_32bits_overflow
       return boolean
@@ -119,7 +108,7 @@ is
    is
       cycles : unsigned_64;
    begin
-      get_cycles(cycles);
+      get_cycles (cycles);
       micros := cycles / (m4.systick.MAIN_CLOCK_FREQUENCY / 1000_000);
    end get_microseconds;
 
@@ -128,7 +117,7 @@ is
    is
       cycles : unsigned_64;
    begin
-      get_cycles(cycles);
+      get_cycles (cycles);
       milli := cycles / (m4.systick.MAIN_CLOCK_FREQUENCY / 1000);
    end get_milliseconds;
 

@@ -26,7 +26,6 @@ with types;       use types;
 with m4.cpu.instructions;
 with m4.systick;
 
-with soc.dwt;
 with soc.rng;
 with soc.system;
 
@@ -42,6 +41,7 @@ with ewok.tasks.unproved;
 
 
 procedure main
+   with spark_mode => on
 is
 
    VTOR_address : system_address

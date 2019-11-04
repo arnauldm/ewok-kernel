@@ -204,10 +204,6 @@ is
    -- SPARK ghost functions and procedures
    -----------------------------------------------------
 
-   function init_is_done return boolean
-      with
-         post => init_is_done'result = init_done;
-
    function check_32bits_overflow return boolean
       with ghost;
 
@@ -219,17 +215,17 @@ is
    -- Reset the DWT-based timer
    procedure reset_timer
       with
-         pre => not init_is_done;
+         pre => not init_done;
 
    -- Start the DWT timer. The register is counting the number of CPU cycles
    procedure start_timer
       with
-         pre => not init_is_done;
+         pre => not init_done;
 
    -- Stop the DWT timer
    procedure stop_timer
       with
-         pre => init_is_done;
+         pre => init_done;
 
    -- Periodically check the DWT CYCCNT register for overflow. This permit
    -- to detect each time an overflow happends and increment the
@@ -244,29 +240,29 @@ is
    -- Initialize the DWT module
    procedure init
       with
-         pre => not init_is_done,
-         post => init_is_done;
+         pre  => not init_done,
+         post => init_done;
 
    -- Get the DWT timer (without overflow support, keep a 32bit value)
    procedure get_cycles_32(cycles : out unsigned_32)
       with
          inline,
-         pre => init_is_done;
+         pre => init_done;
 
    -- Get the DWT timer with overflow support. permits linear measurement
    -- on 64 bits cycles time window (approx. 1270857 days)
    procedure get_cycles (cycles : out unsigned_64)
       with
-         pre => init_is_done;
+         pre => init_done;
 
    procedure get_microseconds (micros : out unsigned_64)
       with
          inline,
-         pre => init_is_done;
+         pre => init_done;
 
    procedure get_milliseconds (milli : out unsigned_64)
       with
          inline,
-         pre => init_is_done;
+         pre => init_done;
 
 end soc.dwt;
