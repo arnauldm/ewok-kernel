@@ -31,6 +31,11 @@ with ewok.mpu.allocator;
 with m4.mpu;
 with m4.scb;
 
+#if CONFIG_KERNEL_SERIAL
+with ewok.debug;
+with soc.usart;
+#end if;
+
 package ewok.memory
    with spark_mode => on
 is
@@ -76,6 +81,20 @@ is
    procedure map_task (id : in t_task_id)
       with
          inline,
+#if CONFIG_KERNEL_SERIAL
+         pre    => id in applications.t_real_task_id'range or
+                   id = ID_SOFTIRQ or
+                   id = ID_KERNEL,
+         global => (input  => (ewok.tasks.tasks_list,
+                               ewok.devices.registered_device,
+                               ewok.debug.kernel_usart_id),
+                    in_out => (m4.mpu.MPU,
+                               m4.scb.SCB,
+                               soc.usart.USART1,
+                               soc.usart.UART4,
+                               soc.usart.USART6),
+                    output => ewok.mpu.allocator.regions_pool);
+#else
          pre    => id in applications.t_real_task_id'range or
                    id = ID_SOFTIRQ or
                    id = ID_KERNEL,
@@ -84,5 +103,6 @@ is
                     in_out => (m4.mpu.MPU,
                                m4.scb.SCB),
                     output => ewok.mpu.allocator.regions_pool);
+#end if;
 
 end ewok.memory;

@@ -26,7 +26,10 @@ with ada.unchecked_conversion;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.tasks;           use type ewok.tasks.t_task_type;
 with ewok.layout;
+
+#if not CONFIG_KERNEL_SERIAL
 with ewok.debug;
+#end if;
 
 package body ewok.memory
    with spark_mode => on
