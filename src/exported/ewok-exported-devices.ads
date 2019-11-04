@@ -20,7 +20,6 @@
 --
 --
 
-with types.c;
 with ewok.exported.interrupts;
 with ewok.exported.gpios;
 
@@ -31,7 +30,7 @@ is
    MAX_INTERRUPTS    : constant := 4;
    MAX_GPIOS         : constant := 16;
 
-   subtype t_device_name is types.c.c_string (1 .. 16);
+   subtype t_device_name is string (1 .. 16);
 
    type t_interrupt_config_array is
       array (unsigned_8 range <>) of

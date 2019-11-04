@@ -35,7 +35,7 @@ with soc.interrupts;             use soc.interrupts;
 with soc.nvic;
 with soc.gpio;
 with soc.rcc;
-with types.c;
+
 
 package body ewok.devices
    with spark_mode => on
@@ -179,17 +179,10 @@ is
       dev_id   : out t_device_id;
       success  : out boolean)
    is
-      len      : constant natural       := types.c.len (udev.name);
-      name     : string (1 .. len);
       periph_id: soc.devmap.t_periph_id := NO_PERIPH;
       found    : boolean;
       used     : boolean;
    begin
-
-      -- Convert C name to Ada string type for further log messages
-      if len >= 1 then
-         types.c.to_ada (name, udev.name);
-      end if;
 
       -- Is it an existing device ?
       -- Note: GPIOs (size = 0) are not considered as devices despite a task
@@ -199,7 +192,8 @@ is
          periph_id :=
             soc.devmap.find_periph (udev.base_addr, udev.size);
          if periph_id = NO_PERIPH then
-            pragma DEBUG (debug.log (debug.ERROR, "Device not existing: " & name));
+            pragma DEBUG
+              (debug.log (debug.ERROR, "Device not existing: " & udev.name));
             dev_id   := ID_DEV_UNUSED;
             success  := false;
             return;
@@ -214,7 +208,7 @@ is
             registered_device(id).periph_id /= NO_PERIPH and then
             registered_device(id).periph_id  = periph_id
          then
-            pragma DEBUG (debug.log (debug.ERROR, "Device already used: " & name));
+            pragma DEBUG (debug.log (debug.ERROR, "Device already used: " & udev.name));
             dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
@@ -224,7 +218,7 @@ is
       -- Are the GPIOs already used ?
       for i in 1 .. udev.gpio_num loop
          if ewok.gpio.is_used (udev.gpios(i).kref) then
-            pragma DEBUG (debug.log (debug.ERROR, "GPIOs already used: " & name));
+            pragma DEBUG (debug.log (debug.ERROR, "GPIOs already used: " & udev.name));
             dev_id  := ID_DEV_UNUSED;
             success := false;
             return;
@@ -236,7 +230,7 @@ is
          if boolean (udev.gpios(i).settings.set_exti) then -- The task want to use the EXTI...
             ewok.exti.is_used (udev.gpios(i).kref, used);
             if used then -- ...but it's already used!
-               pragma DEBUG (debug.log (debug.ERROR, "EXTIs already used: " & name));
+               pragma DEBUG (debug.log (debug.ERROR, "EXTIs already used: " & udev.name));
                dev_id  := ID_DEV_UNUSED;
                success := false;
                return;
@@ -270,7 +264,7 @@ is
             end loop inner_loop;
 
             if not found then
-               pragma DEBUG (debug.log (debug.ERROR, "Invalid interrupts: " & name));
+               pragma DEBUG (debug.log (debug.ERROR, "Invalid interrupts: " & udev.name));
                dev_id  := ID_DEV_UNUSED;
                success := false;
                return;
@@ -282,7 +276,7 @@ is
             if ewok.interrupts.is_interrupt_already_used
                  (udev.interrupts(i).interrupt)
             then
-               pragma DEBUG (debug.log (debug.ERROR, "Interrupts already used: " & name));
+               pragma DEBUG (debug.log (debug.ERROR, "Interrupts already used: " & udev.name));
                dev_id  := ID_DEV_UNUSED;
                success := false;
                return;
@@ -301,7 +295,7 @@ is
       end if;
 
       -- Registering the device
-      pragma DEBUG (debug.log (debug.INFO, "Registered device: " & name));
+      pragma DEBUG (debug.log (debug.INFO, "Registered device: " & udev.name));
 
       registered_device(dev_id).udev      := t_checked_user_device (udev);
       registered_device(dev_id).task_id   := task_id;
@@ -587,8 +581,6 @@ is
       task_id  : in  t_task_id)
       return boolean
    is
-      len      : constant natural := types.c.len (udev.name);
-      name     : string (1 .. natural'min (t_device_name'length, len));
       periph_id: soc.devmap.t_periph_id;
       ok       : boolean;
    begin
@@ -596,10 +588,6 @@ is
       if udev.name(t_device_name'last) /= ASCII.NUL then
          pragma DEBUG (debug.log (debug.ERROR, "Out-of-bound device name"));
          return false;
-      end if;
-
-      if len >= 1 then
-         types.c.to_ada (name, udev.name);
       end if;
 
       if udev.size /= 0 then
@@ -614,7 +602,7 @@ is
          if not ewok.perm.ressource_is_granted
                  (ewok.devices.perms.permissions(periph_id), task_id)
          then
-            pragma DEBUG (debug.log (debug.ERROR, "No access to device: " & name));
+            pragma DEBUG (debug.log (debug.ERROR, "No access to device: " & udev.name));
             return false;
          end if;
       end if;
@@ -623,7 +611,7 @@ is
          ok := sanitize_user_defined_interrupt
                  (udev, udev.interrupts(i), task_id);
          if not ok then
-            pragma DEBUG (debug.log (debug.ERROR, name & ": invalid udev.interrupts parameter"));
+            pragma DEBUG (debug.log (debug.ERROR, udev.name & ": invalid udev.interrupts parameter"));
             return false;
          end if;
       end loop;
@@ -631,7 +619,7 @@ is
       for i in 1 .. udev.gpio_num loop
          ok := sanitize_user_defined_gpio (udev, udev.gpios(i), task_id);
          if not ok then
-            pragma DEBUG (debug.log (debug.ERROR, name & ": invalid udev.gpios parameter"));
+            pragma DEBUG (debug.log (debug.ERROR, udev.name & ": invalid udev.gpios parameter"));
             return false;
          end if;
       end loop;
@@ -643,7 +631,7 @@ is
          if not ewok.perm.ressource_is_granted
                   (PERM_RES_MEM_DYNAMIC_MAP, task_id)
          then
-            pragma DEBUG (debug.log (debug.ERROR, name & ": voluntary mapping not permited"));
+            pragma DEBUG (debug.log (debug.ERROR, udev.name & ": voluntary mapping not permited"));
             return false;
         end if;
       end if;
