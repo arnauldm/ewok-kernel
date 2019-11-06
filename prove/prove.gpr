@@ -28,7 +28,7 @@ project Prove is
          "--steps=0",   -- maximum number of proof steps (0 = unlimited)
          "--level=4",
          "--proof=per_check",
-         "--prover=cvc4,z3,altergo",
+         "--prover=all",
          "--timeout=5"); -- prover timeout in seconds
    end Prove;
 

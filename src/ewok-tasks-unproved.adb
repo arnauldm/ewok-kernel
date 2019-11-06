@@ -43,9 +43,10 @@ is
       params   : in  ewok.t_parameters;
       frame_a  : out ewok.t_stack_frame_access)
    is
+      new_sp : constant system_address := sp - (t_stack_frame'size / 8);
    begin
 
-      frame_a := to_stack_frame_access (sp - (t_stack_frame'size / 8));
+      frame_a := to_stack_frame_access (new_sp);
 
       frame_a.all.R0 := params(1);
       frame_a.all.R1 := params(2);

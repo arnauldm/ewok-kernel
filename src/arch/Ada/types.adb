@@ -11,9 +11,6 @@ is
         (unsigned_8, bit);
       pragma warnings (on);
    begin
-      if u > 1 then
-         raise program_error;
-      end if;
       return conv (u);
    end to_bit;
 
@@ -26,9 +23,6 @@ is
         (unsigned_32, bit);
       pragma warnings (on);
    begin
-      if u > 1 then
-         raise program_error;
-      end if;
       return conv (u);
    end to_bit;
 

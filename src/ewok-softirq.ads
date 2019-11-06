@@ -25,11 +25,14 @@ with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.tasks;
 with ewok.interrupts;
 with ewok.devices;
-with ewok.debug;
-with soc.interrupts;
+with soc.interrupts; use type soc.interrupts.t_interrupt;
 with m4.scb;
-with soc.usart;
 with rings;
+
+#if CONFIG_KERNEL_SERIAL
+with ewok.debug;
+with soc.usart;
+#end if;
 
 package ewok.softirq
   with spark_mode => on
@@ -64,10 +67,17 @@ is
 
    procedure push_isr
      (task_id     : in  ewok.tasks_shared.t_task_id;
-      params      : in  t_isr_parameters);
+      params      : in  t_isr_parameters)
+      with
+         pre =>
+            task_id /= ID_UNUSED and
+            params.interrupt >= soc.interrupts.INT_WWDG;
 
    procedure isr_handler (req : in  t_isr_request)
       with
+         pre =>
+            req.caller_id /= ID_UNUSED and
+            req.params.interrupt >= soc.interrupts.INT_WWDG,
          global =>
            (input  =>
               (ewok.interrupts.interrupt_table,
@@ -79,6 +89,7 @@ is
    procedure main_task
       with
          global =>
+#if CONFIG_KERNEL_SERIAL
            (input  =>
               (ewok.interrupts.interrupt_table,
                ewok.devices.registered_device,
@@ -88,8 +99,18 @@ is
                isr_queue,
                previous_isr_owner,
                m4.scb.SCB,
-               soc.usart.usart1,
-               soc.usart.uart4,
-               soc.usart.usart6));
+               soc.usart.USART1,
+               soc.usart.UART4,
+               soc.usart.USART6));
+#else
+           (input  =>
+              (ewok.interrupts.interrupt_table,
+               ewok.devices.registered_device),
+            in_out =>
+              (ewok.tasks.tasks_list,
+               isr_queue,
+               previous_isr_owner,
+               m4.scb.SCB));
+#end if;
 
 end ewok.softirq;

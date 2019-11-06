@@ -164,8 +164,8 @@ is
       state             : t_task_state    := TASK_STATE_EMPTY;
       isr_state         : t_task_state    := TASK_STATE_EMPTY;
       ipc_endpoint_id   : t_ipc_endpoint_id_list;
-      ctx               : aliased t_main_context;
-      isr_ctx           : aliased t_isr_context;
+      ctx               : t_main_context;
+      isr_ctx           : t_isr_context;
    end record
       with
          dynamic_predicate => slot_in_bounds (slot, num_slots);
@@ -179,7 +179,7 @@ is
       num_slots + unsigned_8 (slot) - 1 <= m4.mpu.t_subregion'last);
 
 
-   type t_task_array is array (t_task_id range <>) of aliased t_task;
+   type t_task_array is array (t_task_id range <>) of t_task;
 
    -------------
    -- Globals --
@@ -188,8 +188,8 @@ is
    -- The list of the running tasks
    tasks_list : t_task_array (ID_APP1 .. ID_KERNEL);
 
-   softirq_task_name : aliased t_task_name := "SOFTIRQ" & "   ";
-   idle_task_name    : aliased t_task_name := "IDLE" & "      ";
+   softirq_task_name : t_task_name := "SOFTIRQ" & "   ";
+   idle_task_name    : t_task_name := "IDLE" & "      ";
 
    ---------------
    -- Functions --
@@ -281,12 +281,16 @@ is
       descriptor  : out unsigned_8;
       success     : out boolean)
       with
-         global => (in_out => tasks_list),
-         pre    => id /= ID_UNUSED,
+         global =>
+            (in_out => tasks_list),
+         pre  =>
+            id in applications.t_real_task_id and
+            ewok.tasks.tasks_list(id).num_devs < ewok.tasks.MAX_DEVS_PER_TASK,
          post => (if success = false then
                      descriptor = 0
                   else
                      descriptor in t_device_descriptor);
+
 
    procedure remove_device
      (id             : in  ewok.tasks_shared.t_task_id;

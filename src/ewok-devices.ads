@@ -44,7 +44,7 @@ is
    type t_checked_user_device is new ewok.exported.devices.t_user_device;
 
    type t_device is record
-      udev        : aliased t_checked_user_device;
+      udev        : t_checked_user_device;
       task_id     : t_task_id                := ID_UNUSED;
       periph_id   : soc.devmap.t_periph_id   := soc.devmap.NO_PERIPH;
       status      : t_device_state           := DEV_STATE_UNUSED;

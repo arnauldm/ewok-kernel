@@ -360,10 +360,10 @@ is
    end record;
 
 
-   DMA1  : aliased t_dma_periph
+   DMA1  : t_dma_periph
       with import, volatile, address => system'to_address (soc.layout.DMA1_BASE);
 
-   DMA2  : aliased t_dma_periph
+   DMA2  : t_dma_periph
       with import, volatile, address => system'to_address (soc.layout.DMA2_BASE);
 
 

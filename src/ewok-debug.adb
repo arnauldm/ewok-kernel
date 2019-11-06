@@ -47,7 +47,7 @@ package body ewok.debug
    with spark_mode => on
 is
 
-   TX_pin_config     : aliased ewok.exported.gpios.t_gpio_config;
+   TX_pin_config     : ewok.exported.gpios.t_gpio_config;
 
    USART1_TX_pin_config : constant ewok.exported.gpios.t_gpio_config :=
      (settings => ewok.exported.gpios.t_gpio_settings'(others => true),

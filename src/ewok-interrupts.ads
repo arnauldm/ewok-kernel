@@ -39,7 +39,7 @@ is
    end record;
 
    interrupt_table :
-      array (soc.interrupts.t_interrupt) of aliased t_interrupt_cell :=
+      array (soc.interrupts.t_interrupt) of t_interrupt_cell :=
         (others =>
            (task_id      => ewok.tasks_shared.ID_UNUSED,
             device_id    => ewok.devices_shared.ID_DEV_UNUSED,

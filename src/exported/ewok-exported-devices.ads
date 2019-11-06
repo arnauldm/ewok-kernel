@@ -34,11 +34,11 @@ is
 
    type t_interrupt_config_array is
       array (unsigned_8 range <>) of
-         aliased ewok.exported.interrupts.t_interrupt_config;
+         ewok.exported.interrupts.t_interrupt_config;
 
    type t_gpio_config_array is
       array (unsigned_8 range <>) of
-         aliased ewok.exported.gpios.t_gpio_config;
+         ewok.exported.gpios.t_gpio_config;
 
    type t_dev_map_mode is
       (DEV_MAP_AUTO,

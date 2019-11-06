@@ -97,7 +97,7 @@ is
    subtype t_endpoint_id is
       t_extended_endpoint_id range 1 .. ENDPOINTS_POOL_SIZE;
 
-   ipc_endpoints : array (t_endpoint_id) of aliased t_endpoint;
+   ipc_endpoints : array (t_endpoint_id) of t_endpoint;
 
    --
    -- Functions

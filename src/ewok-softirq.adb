@@ -26,17 +26,20 @@ with ewok.tasks.unproved;
 with ewok.layout;
 with ewok.sched;
 with ewok.exported.interrupts;
-with soc.interrupts; use type soc.interrupts.t_interrupt;
 with soc.nvic;
 with soc.layout;
 with m4.cpu;
+
+#if not CONFIG_KERNEL_SERIAL
+with ewok.debug;
+#end if;
 
 #if CONFIG_DBGLEVEL >= 7
 with types.c; use types.c;
 #end if;
 
 package body ewok.softirq
-  with spark_mode => off
+  with spark_mode => on
 is
 
    package TSK renames ewok.tasks;
@@ -82,14 +85,6 @@ is
       config   : ewok.exported.interrupts.t_interrupt_config;
       ok       : boolean;
    begin
-
-      if req.caller_id = ID_UNUSED then
-         raise program_error;
-      end if;
-
-      if req.params.interrupt <= soc.interrupts.INT_SYSTICK then
-         raise program_error;
-      end if;
 
       -- For further MPU mapping of the device, we need to know which device
       -- triggered that interrupt.
@@ -185,6 +180,10 @@ is
             end if;
 
             if isr_req.caller_id = ID_UNUSED then
+               raise program_error;
+            end if;
+
+            if isr_req.params.interrupt <= soc.interrupts.INT_SYSTICK then
                raise program_error;
             end if;
 

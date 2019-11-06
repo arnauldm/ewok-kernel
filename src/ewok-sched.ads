@@ -52,7 +52,7 @@ is
    procedure request_schedule
       with
          inline,
-         global => (output => m4.scb.SCB);
+         global => (in_out => m4.scb.SCB);
 
    procedure task_elect
      (elected : out t_task_id)
@@ -77,9 +77,9 @@ is
                        current_task_id,
                        current_task_mode,
                        m4.mpu.MPU,
-                       soc.usart.usart1,
-                       soc.usart.uart4,
-                       soc.usart.usart6),
+                       soc.usart.USART1,
+                       soc.usart.UART4,
+                       soc.usart.USART6),
             output => ewok.mpu.allocator.regions_pool);
 
    procedure systick_handler
@@ -98,11 +98,13 @@ is
                        m4.mpu.MPU,
                        soc.dwt.DWT_CYCCNT,
                        sched_period,
+#if CONFIG_KERNEL_SERIAL
+                       soc.usart.USART1,
+                       soc.usart.UART4,
+                       soc.usart.USART6,
+#end if;
                        soc.dwt.dwt_loops,
-                       soc.dwt.last_dwt,
-                       soc.usart.usart1,
-                       soc.usart.uart4,
-                       soc.usart.usart6),
+                       soc.dwt.last_dwt),
             output => ewok.mpu.allocator.regions_pool);
 
    procedure do_schedule
