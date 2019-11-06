@@ -31,7 +31,6 @@ with ewok.debug;
 with ewok.perm;
 #end if;
 
-with soc.interrupts;       use type soc.interrupts.t_interrupt;
 with soc.dma;              use soc.dma;
 with soc.dma.interfaces;   use soc.dma.interfaces;
 with soc.nvic;
@@ -156,10 +155,6 @@ is
       periph_id : constant soc.devmap.t_periph_id :=
          registered_dma(index).periph_id;
    begin
-
-      if periph_id = soc.devmap.NO_PERIPH then
-         raise program_error;
-      end if;
 
       declare
          -- DMAs have only one IRQ line per stream
@@ -323,12 +318,9 @@ is
       caller_id      : in     ewok.tasks_shared.t_task_id;
       success        : out    boolean)
    is
-      periph_id   : constant soc.devmap.t_periph_id := registered_dma(index).periph_id;
+      periph_id   : constant soc.devmap.t_periph_id :=
+         registered_dma(index).periph_id;
    begin
-
-      if periph_id = soc.devmap.NO_PERIPH then
-         raise program_error;
-      end if;
 
       if not to_configure.buffer_size then
          user_config.size := registered_dma(index).config.bytes;
@@ -555,14 +547,12 @@ is
       soc_dma_id     : soc.dma.t_dma_periph_index;
       soc_stream_id  : soc.dma.t_stream_index;
       ok : boolean;
+      pragma unreferenced (ok);
    begin
 
       soc.dma.get_dma_stream_from_interrupt
         (interrupt, soc_dma_id, soc_stream_id, ok);
-
-      if not ok then
-         raise program_error;
-      end if;
+         -- ok is proved to be always true here
 
       if not task_owns_dma_stream (caller_id, t_controller (soc_dma_id),
                                    t_stream (soc_stream_id))

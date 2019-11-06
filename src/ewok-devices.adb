@@ -30,7 +30,6 @@ with ewok.gpio;
 with ewok.exti;
 with ewok.debug;
 with ewok.devices.perms;
-with soc.devmap;                 use soc.devmap;
 with soc.interrupts;             use soc.interrupts;
 with soc.nvic;
 with soc.gpio;
@@ -85,9 +84,6 @@ is
       return boolean
    is
    begin
-      if registered_device(dev_id).periph_id = soc.devmap.NO_PERIPH then
-         raise program_error;
-      end if;
       return soc.devmap.periphs(registered_device(dev_id).periph_id).ro;
    end is_device_region_ro;
 
@@ -96,9 +92,6 @@ is
       return m4.mpu.t_subregion_mask
    is
    begin
-      if registered_device(dev_id).periph_id = soc.devmap.NO_PERIPH then
-         raise program_error;
-      end if;
       return m4.mpu.to_subregion_mask
         (soc.devmap.periphs(registered_device(dev_id).periph_id).subregions);
    end get_device_subregions_mask;
@@ -442,7 +435,10 @@ is
       task_id  : in  t_task_id)
       return boolean
       with
-         pre => task_id in applications.t_real_task_id
+         pre => task_id in applications.t_real_task_id,
+         post =>
+            (if sanitize_user_defined_interrupt'result then
+               config.interrupt in INT_WWDG .. INT_HASH_RNG)
    is
    begin
 

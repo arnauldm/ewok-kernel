@@ -25,7 +25,7 @@ with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.exported.devices;
 with ewok.exported.interrupts;
 with soc.interrupts;
-with soc.devmap;
+with soc.devmap;           use soc.devmap;
 with m4.mpu;
 with applications;
 
@@ -71,10 +71,14 @@ is
       return system_address;
 
    function is_device_region_ro (dev_id : t_registered_device_id)
-      return boolean;
+      return boolean
+   with
+      pre => registered_device(dev_id).periph_id /= soc.devmap.NO_PERIPH;
 
    function get_device_subregions_mask (dev_id : t_registered_device_id)
-      return m4.mpu.t_subregion_mask;
+      return m4.mpu.t_subregion_mask
+   with
+      pre => registered_device(dev_id).periph_id /= soc.devmap.NO_PERIPH;
 
    function get_device_map_mode (dev_id : t_registered_device_id)
       return ewok.exported.devices.t_dev_map_mode;
@@ -104,6 +108,6 @@ is
       task_id  : in  t_task_id)
       return boolean
    with
-      pre => task_id in applications.t_real_task_id;
+      pre   => task_id in applications.t_real_task_id;
 
 end ewok.devices;

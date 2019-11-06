@@ -25,7 +25,12 @@ with ewok.dma_shared;
 with ewok.exported.dma;
 with soc.dma;
 with soc.dma.interfaces;
-with soc.interrupts;
+
+pragma warnings (off,
+   "*soc.interrupts.t_interrupt* is already use-visible through previous use_type_clause");
+with soc.interrupts;    use type soc.interrupts.t_interrupt;
+pragma warnings (on);
+
 with soc.devmap;        use type soc.devmap.t_periph_id;
 
 
@@ -76,7 +81,9 @@ is
      (index : in ewok.dma_shared.t_registered_dma_index);
 
    procedure enable_dma_irq
-     (index : in ewok.dma_shared.t_registered_dma_index);
+     (index : in ewok.dma_shared.t_registered_dma_index)
+      with
+         pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
 
    function is_config_complete
      (config : soc.dma.interfaces.t_dma_config)
@@ -104,7 +111,9 @@ is
       index          : in     ewok.dma_shared.t_registered_dma_index;
       to_configure   : in     ewok.exported.dma.t_config_mask;
       caller_id      : in     ewok.tasks_shared.t_task_id;
-      success        : out    boolean);
+      success        : out    boolean)
+      with
+         pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
 
    procedure init_stream
      (user_config    : in     ewok.exported.dma.t_dma_user_config;
@@ -120,8 +129,26 @@ is
 
    procedure clear_dma_interrupts
      (caller_id : in  ewok.tasks_shared.t_task_id;
-      interrupt : in  soc.interrupts.t_interrupt);
-
+      interrupt : in  soc.interrupts.t_interrupt)
+   with
+      pre => 
+        (interrupt = soc.interrupts.INT_DMA1_STREAM0 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM1 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM2 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM3 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM4 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM5 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM6 or
+         interrupt = soc.interrupts.INT_DMA1_STREAM7 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM0 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM1 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM2 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM3 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM4 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM5 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM6 or
+         interrupt = soc.interrupts.INT_DMA2_STREAM7);
+               
    procedure get_status_register
      (caller_id : in  ewok.tasks_shared.t_task_id;
       interrupt : in  soc.interrupts.t_interrupt;
