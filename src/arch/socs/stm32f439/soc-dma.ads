@@ -412,10 +412,28 @@ is
          then
             success);
 
-
    function soc_is_dma_irq
       (intr : soc.interrupts.t_interrupt)
-      return boolean;
+      return boolean
+   with
+      post =>
+        (if soc_is_dma_irq'result then
+            intr = soc.interrupts.INT_DMA1_STREAM0 or
+            intr = soc.interrupts.INT_DMA1_STREAM1 or
+            intr = soc.interrupts.INT_DMA1_STREAM2 or
+            intr = soc.interrupts.INT_DMA1_STREAM3 or
+            intr = soc.interrupts.INT_DMA1_STREAM4 or
+            intr = soc.interrupts.INT_DMA1_STREAM5 or
+            intr = soc.interrupts.INT_DMA1_STREAM6 or
+            intr = soc.interrupts.INT_DMA1_STREAM7 or
+            intr = soc.interrupts.INT_DMA2_STREAM0 or
+            intr = soc.interrupts.INT_DMA2_STREAM1 or
+            intr = soc.interrupts.INT_DMA2_STREAM2 or
+            intr = soc.interrupts.INT_DMA2_STREAM3 or
+            intr = soc.interrupts.INT_DMA2_STREAM4 or
+            intr = soc.interrupts.INT_DMA2_STREAM5 or
+            intr = soc.interrupts.INT_DMA2_STREAM6 or
+            intr = soc.interrupts.INT_DMA2_STREAM7);
 
    procedure get_interrupt_status
      (controller  : in out t_dma_periph;

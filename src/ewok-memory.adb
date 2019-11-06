@@ -167,6 +167,13 @@ is
          dev_id := new_task.isr_ctx.device_id;
 
          if dev_id /= ID_DEV_UNUSED then
+
+            if ewok.devices.registered_device(dev_id).periph_id
+                  = soc.devmap.NO_PERIPH
+            then
+               raise program_error;
+            end if;
+
             map_device (dev_id, ok);
             if not ok then
                debug.panic ("mpu_switching(): mapping device failed!");
@@ -185,6 +192,13 @@ is
             if new_task.devices(i).device_id /= ID_DEV_UNUSED and then
                new_task.devices(i).mounted = true
             then
+
+               if ewok.devices.registered_device(new_task.devices(i).device_id).periph_id
+                     = soc.devmap.NO_PERIPH
+               then
+                  raise program_error;
+               end if;
+
                map_device (new_task.devices(i).device_id, ok);
                if not ok then
                   debug.panic ("mpu_switching(): mapping device failed!");

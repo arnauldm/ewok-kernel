@@ -20,8 +20,8 @@
 --
 --
 
-with ewok.tasks_shared;
-with soc.interrupts; use soc.interrupts;
+with ewok.tasks_shared; use ewok.tasks_shared;
+with soc.interrupts;    use soc.interrupts;
 
 package ewok.isr
    with spark_mode => on
@@ -32,6 +32,8 @@ is
       handler  : in system_address;
       task_id  : in ewok.tasks_shared.t_task_id)
    with
-      pre => intr >= soc.interrupts.INT_WWDG;
+      pre =>
+         intr >= soc.interrupts.INT_WWDG and
+         task_id /= ID_UNUSED;
 
 end ewok.isr;

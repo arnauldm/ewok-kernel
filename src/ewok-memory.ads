@@ -29,7 +29,7 @@ with ewok.devices;
 with ewok.mpu;
 with ewok.mpu.allocator;
 with m4.mpu;
-with m4.scb;
+with soc.devmap; use type soc.devmap.t_periph_id;
 
 #if CONFIG_KERNEL_SERIAL
 with ewok.debug;
@@ -65,7 +65,10 @@ is
    procedure map_device
      (dev_id   : in  ewok.devices_shared.t_registered_device_id;
       success  : out boolean)
-      with inline;
+      with
+         pre =>
+            ewok.devices.registered_device(dev_id).periph_id
+               /= soc.devmap.NO_PERIPH;
 
    procedure unmap_device
      (dev_id   : in  ewok.devices_shared.t_registered_device_id)
@@ -89,7 +92,6 @@ is
                                ewok.devices.registered_device,
                                ewok.debug.kernel_usart_id),
                     in_out => (m4.mpu.MPU,
-                               m4.scb.SCB,
                                soc.usart.USART1,
                                soc.usart.UART4,
                                soc.usart.USART6),

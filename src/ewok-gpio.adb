@@ -52,10 +52,10 @@ is
             soc.gpio.t_gpio_pin_index'image (ref.pin) & " is already used."));
          success := false;
       else
-         gpio_points(ref.port, ref.pin).used       := true;
          gpio_points(ref.port, ref.pin).task_id    := task_id;
          gpio_points(ref.port, ref.pin).device_id  := device_id;
          gpio_points(ref.port, ref.pin).config     := gpio_config;
+         gpio_points(ref.port, ref.pin).used       := true;
          success := true;
       end if;
    end register;

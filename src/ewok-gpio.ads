@@ -31,13 +31,17 @@ is
 
    function is_used
      (ref : ewok.exported.gpios.t_gpio_ref)
-      return boolean;
+      return boolean
+   with post =>
+      is_used'result = gpio_points(ref.port, ref.pin).used;
 
    procedure register
      (task_id     : in  ewok.tasks_shared.t_task_id;
       device_id   : in  ewok.devices_shared.t_device_id;
       gpio_config : in  ewok.exported.gpios.t_gpio_config;
-      success     : out boolean);
+      success     : out boolean)
+   with
+      pre => task_id /= ID_UNUSED;
 
    procedure release
      (task_id     : in  ewok.tasks_shared.t_task_id;
@@ -81,7 +85,8 @@ is
       task_id     : ewok.tasks_shared.t_task_id       := ID_UNUSED;
       device_id   : ewok.devices_shared.t_device_id   := ID_DEV_UNUSED;
       config      : ewok.exported.gpios.t_gpio_config;
-   end record;
+   end record
+      with dynamic_predicate => (if used then task_id /= ID_UNUSED);
 
    -- Keep track of used GPIO points
    gpio_points : array (soc.gpio.t_gpio_port_index, soc.gpio.t_gpio_pin_index)

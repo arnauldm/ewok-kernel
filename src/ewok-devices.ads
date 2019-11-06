@@ -92,7 +92,9 @@ is
      (task_id  : in  t_task_id;
       udev     : in  ewok.exported.devices.t_user_device;
       dev_id   : out t_device_id;
-      success  : out boolean);
+      success  : out boolean)
+   with
+      pre   => task_id /= ID_UNUSED;
 
    procedure release_device
      (task_id  : in  t_task_id;

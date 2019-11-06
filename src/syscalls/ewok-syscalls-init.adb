@@ -48,8 +48,9 @@ is
       udev_address : constant system.address := to_address (params(1));
       udev         : ewok.exported.devices.t_user_device
          with
-            import, address => udev_address,
-            size => 11232; -- Required by SPARK
+            import,
+            address => udev_address,
+            size    => 11232; -- Required by SPARK
 
       -- Device descriptor transmitted to userspace
       descriptor_address : constant system.address := to_address (params(2));

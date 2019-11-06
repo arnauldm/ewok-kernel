@@ -26,6 +26,7 @@ with m4.cpu.instructions;
 with ewok.debug;
 with ewok.ipc;             use ewok.ipc;
 with ewok.memory;
+with soc.devmap;           use type soc.devmap.t_periph_id;
 with types.c;              use type types.c.t_retval;
 
 
@@ -254,6 +255,13 @@ is
 
       -- FIXME: defensive programming, should be removed
       if is_mounted (id, dev_descriptor) then
+         raise program_error;
+      end if;
+
+      -- FIXME: defensive programming, should be removed
+      if ewok.devices.registered_device(tasks_list(id).devices(dev_descriptor).device_id).periph_id
+            = soc.devmap.NO_PERIPH
+      then
          raise program_error;
       end if;
 

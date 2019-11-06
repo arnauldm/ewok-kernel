@@ -26,8 +26,8 @@ with soc.syscfg;
 with soc.nvic;
 with soc.interrupts;
 with ewok.exported.gpios;  use type ewok.exported.gpios.t_interface_gpio_exti_lock;
+with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.gpio;
-with ewok.tasks_shared;
 with ewok.isr;
 with ewok.debug;
 
@@ -61,6 +61,10 @@ is
             t_gpio_pin_index'image (ref.pin)));
       else
          task_id  := ewok.gpio.get_task_id (ref);
+
+         if task_id = ID_UNUSED then
+            raise program_error;
+         end if;
 
          -- Retrieving the GPIO configuration associated to that GPIO point.
          -- Permit to get the "real" user ISR.

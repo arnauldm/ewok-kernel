@@ -201,7 +201,7 @@ is
    procedure finished_task with no_return;
 
    function is_real_user (id : ewok.tasks_shared.t_task_id) return boolean
-      with 
+      with
          post =>
            (if is_real_user'result then
                id /= ID_UNUSED and
@@ -284,7 +284,7 @@ is
          global =>
             (in_out => tasks_list),
          pre  =>
-            id in applications.t_real_task_id and
+            id in applications.t_real_task_id and then
             ewok.tasks.tasks_list(id).num_devs < ewok.tasks.MAX_DEVS_PER_TASK,
          post => (if success = false then
                      descriptor = 0
@@ -296,7 +296,7 @@ is
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre => id /= ID_UNUSED, 
+         pre => id /= ID_UNUSED,
          global => (in_out => tasks_list);
 
    function is_mounted
@@ -324,7 +324,7 @@ is
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre => id /= ID_UNUSED, 
+         pre => id /= ID_UNUSED,
          global =>
            (input => ewok.devices.registered_device,
             in_out =>

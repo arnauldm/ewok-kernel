@@ -28,6 +28,7 @@ with ewok.exported.dma;
 with ewok.perm;
 with ewok.sanitize;
 with ewok.debug;
+with soc.devmap;        use type soc.devmap.t_periph_id;
 
 package body ewok.syscalls.dma
    with spark_mode => on
@@ -379,6 +380,13 @@ is
          TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
+      end if;
+
+      -- FIXME Needed by SPARK
+      if ewok.dma.registered_dma(TSK.tasks_list(caller_id).dma_id(dma_descriptor)).periph_id
+         = soc.devmap.NO_PERIPH
+      then
+         raise program_error;
       end if;
 
       -- Reconfigure the DMA controller
