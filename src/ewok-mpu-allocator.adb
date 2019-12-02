@@ -58,6 +58,8 @@ is
       ret := ret or shift_right (ret, 8);
       ret := ret or shift_right (ret, 16);
       ret := ret + 1;
+      -- FIXME - To be proved
+      pragma assume (is_power_of_2 (ret));
       return ret;
    end to_next_power_of_2;
 
@@ -73,6 +75,14 @@ is
       allocated_size : unsigned_32;
    begin
 
+      -- Verifying size's bounds
+      if size < 32 or
+         size > 2*GBYTE
+      then
+         success := false;
+         return;
+      end if;
+
       -- Verifying that size is a power of 2
       if not is_power_of_2 (size)
       then
@@ -81,23 +91,10 @@ is
          allocated_size := size;
       end if;
 
-      -- Verifying size's bounds
-      if allocated_size < 32 or
-         allocated_size > 2*GBYTE
-      then
-         success := false;
-         return;
-      end if;
-
       -- Verifying region alignement
       if (unsigned_32 (addr) and (allocated_size - 1)) > 0 then
          success := false;
          return;
-      end if;
-
-      -- FIXME - Should be proved
-      if (allocated_size and (allocated_size - 1)) /= 0 then
-         raise program_error;
       end if;
 
       ewok.mpu.bytes_to_region_size (allocated_size, region_size);

@@ -39,10 +39,7 @@ is
    --   1) reduce the generated asm
    --   2) avoid writting errors in switch/case write which
    --      can't be detected through SPARK rules
-
-   type t_GPIO_port_access is access all t_GPIO_port;
-
-   GPIOx : constant array (t_gpio_port_index) of t_GPIO_port_access :=
+   GPIOx : constant array (t_gpio_port_index) of access t_GPIO_port :=
      (GPIOA'access, GPIOB'access, GPIOC'access, GPIOD'access, GPIOE'access,
       GPIOF'access, GPIOG'access, GPIOH'access, GPIOI'access);
 

@@ -274,8 +274,7 @@ is
          when 512*MBYTE => region_size := REGION_SIZE_512MB;
          when 1*GBYTE   => region_size := REGION_SIZE_1GB;
          when 2*GBYTE   => region_size := REGION_SIZE_2GB;
-         when others    =>
-            raise program_error;
+         when others    => raise program_error; -- Unreachable (proved)
       end case;
    end bytes_to_region_size;
 

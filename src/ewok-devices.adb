@@ -621,9 +621,6 @@ is
       end loop;
 
       if udev.map_mode = DEV_MAP_VOLUNTARY then
-         if task_id not in applications.t_real_task_id'range then
-            raise program_error;
-         end if;
          if not ewok.perm.ressource_is_granted
                   (PERM_RES_MEM_DYNAMIC_MAP, task_id)
          then

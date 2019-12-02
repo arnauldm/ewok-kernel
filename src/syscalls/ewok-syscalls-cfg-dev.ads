@@ -72,7 +72,14 @@ is
       params      : in out t_parameters;
       mode        : in ewok.tasks_shared.t_task_mode)
       with
-         pre => caller_id in applications.t_real_task_id,
+         pre =>
+#if SPARK
+            caller_id in applications.t_real_task_id and then
+           (ewok.tasks.tasks_list(caller_id).num_devs =
+               ewok.tasks.count_used (ewok.tasks.tasks_list(caller_id).devices)),
+#else
+            caller_id in applications.t_real_task_id,
+#end if;
          global =>
            (in_out =>
               (tasks_list,

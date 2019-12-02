@@ -204,9 +204,13 @@ is
             success     := true;
             return;
          end if;
+
+         pragma loop_invariant
+           (for all j in tasks_list(id).devices'first .. i
+                => tasks_list(id).devices(j).device_id /= ID_DEV_UNUSED);
       end loop;
 
-      raise program_error;
+      raise program_error; -- Unreachable (proved)
    end append_device;
 
 
@@ -216,10 +220,10 @@ is
    is
    begin
       if tasks_list(id).devices(dev_descriptor).device_id = ID_DEV_UNUSED then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
       if tasks_list(id).num_devs < 1 then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
       tasks_list(id).devices(dev_descriptor).device_id := ID_DEV_UNUSED;
       tasks_list(id).devices(dev_descriptor).mounted   := false;
@@ -233,9 +237,8 @@ is
       return boolean
    is
    begin
-      -- FIXME: defensive programming, should be removed
       if tasks_list(id).devices(dev_descriptor).device_id = ID_DEV_UNUSED then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
       return tasks_list(id).devices(dev_descriptor).mounted;
    end is_mounted;
@@ -248,21 +251,18 @@ is
    is
    begin
 
-      -- FIXME: defensive programming, should be removed
       if tasks_list(id).devices(dev_descriptor).device_id = ID_DEV_UNUSED then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
-      -- FIXME: defensive programming, should be removed
       if is_mounted (id, dev_descriptor) then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
-      -- FIXME: defensive programming, should be removed
       if ewok.devices.registered_device(tasks_list(id).devices(dev_descriptor).device_id).periph_id
             = soc.devmap.NO_PERIPH
       then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
       -- Mapping the device
@@ -281,14 +281,12 @@ is
    is
    begin
 
-      -- FIXME: defensive programming, should be removed
       if tasks_list(id).devices(dev_descriptor).device_id = ID_DEV_UNUSED then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
-      -- FIXME: defensive programming, should be removed
       if not is_mounted (id, dev_descriptor) then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
       -- Unmapping the device

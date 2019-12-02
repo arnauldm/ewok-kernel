@@ -18,7 +18,8 @@ project Prove is
         ("-gnatep=" & Prove'Project_Dir & "gnatprep.def",
          "-gnateT=" & Prove'Project_Dir & "target.atp",
          "-gnata",
-         "--RTS=" & external("ADA_RUNTIME") & "/arm-eabi/lib/gnat/zfp-stm32f4");
+         "--RTS=" & external("ADA_RUNTIME") & "/arm-eabi/lib/gnat/zfp-stm32f4",
+         "-gnateDSPARK=true");
    end Builder;
 
    package Prove is

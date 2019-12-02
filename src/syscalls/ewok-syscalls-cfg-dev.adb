@@ -310,17 +310,29 @@ is
       -- Defensive programming. Verifying that the device really belongs to the
       -- task
       if ewok.devices.get_task_from_id (dev_id) /= caller_id then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
       --
       -- Releasing the device
       --
 
+#if SPARK
+      pragma assert
+        (TSK.tasks_list(caller_id).num_devs =
+            TSK.count_used (TSK.tasks_list(caller_id).devices));
+#end if;
+
       -- Unmounting the device
       if TSK.is_mounted (caller_id, dev_descriptor) then
          TSK.unmount_device (caller_id, dev_descriptor);
       end if;
+
+#if SPARK
+      pragma assume
+        (TSK.tasks_list(caller_id).num_devs =
+            TSK.count_used (TSK.tasks_list(caller_id).devices));
+#end if;
 
       -- Removing it from the task's list of used devices
       TSK.remove_device (caller_id, dev_descriptor);
@@ -328,7 +340,7 @@ is
       -- Release GPIOs, EXTIs and interrupts
       ewok.devices.release_device (caller_id, dev_id, ok);
       if not ok then
-         raise program_error;
+         raise program_error; -- Unreachable (proved)
       end if;
 
       TSK.set_return_value (caller_id, mode, SYS_E_DONE);

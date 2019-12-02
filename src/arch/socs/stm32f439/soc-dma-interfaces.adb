@@ -228,7 +228,7 @@ is
 
          when CIRCULAR_MODE   =>
             if user_config.transfer_dir = MEMORY_TO_MEMORY then
-               raise program_error; -- Not implemented
+               raise program_error; -- Unreachable (proved)
             end if;
             controller.streams(stream).FCR.DMDIS            := true; -- Disable direct mode
             controller.streams(stream).FCR.FIFO_ERROR       := false;
@@ -343,7 +343,7 @@ is
 
             when CIRCULAR_MODE   =>
                if user_config.transfer_dir = MEMORY_TO_MEMORY then
-                  raise program_error; -- Not implemented
+                  raise program_error; -- Unreachable (proved)
                end if;
                controller.streams(stream).FCR.DMDIS            := true; -- Disable direct mode
                controller.streams(stream).FCR.FIFO_ERROR       := false;

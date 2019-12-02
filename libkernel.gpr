@@ -126,7 +126,6 @@ library project Libkernel is
       "soc.dwt",
       "soc.exti",
       "soc.gpio",
-      "soc.gpio.interfaces",
       "soc.interrupts",
       "soc.layout",
       "soc.layout.stm32f42x",

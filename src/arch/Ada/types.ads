@@ -1,10 +1,3 @@
-pragma restrictions (no_secondary_stack);
-pragma restrictions (no_elaboration_code);
-pragma restrictions (no_finalization);
-pragma restrictions (no_exception_handlers);
-pragma restrictions (no_recursion);
-pragma restrictions (no_wide_characters);
-
 with system;
 with ada.unchecked_conversion;
 with interfaces;  use interfaces;

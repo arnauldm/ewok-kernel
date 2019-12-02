@@ -123,7 +123,9 @@ is
    end record;
 
    subtype t_device_descriptor is unsigned_8 range 1 .. MAX_DEVS_PER_TASK;
-   type t_device_list is array (t_device_descriptor) of t_device;
+   type t_device_list_unbound is
+      array (t_device_descriptor range <>) of t_device;
+   subtype t_device_list is t_device_list_unbound (t_device_descriptor);
 
    type t_ipc_endpoint_id_list is array (ewok.tasks_shared.t_task_id) of
       ewok.ipc.t_extended_endpoint_id
@@ -180,6 +182,33 @@ is
 
 
    type t_task_array is array (t_task_id range <>) of t_task;
+
+   -----------
+   -- Ghost --
+   -----------
+
+#if SPARK
+   -- FIXME - Must enable pragmas no_recursion and no_secondary_stack
+
+   function remove_last (dev : t_device_list_unbound)
+      return t_device_list_unbound is (dev(dev'first .. dev'last - 1))
+   with
+      ghost,
+      pre => dev'length > 0;
+
+   function count_used (dev : t_device_list_unbound) return unsigned_8 is
+     (if dev'length = 0 then 0
+      elsif dev(dev'last).device_id /= ID_DEV_UNUSED then
+         count_used (remove_last (dev)) + 1
+      else
+         count_used (remove_last (dev)))
+   with
+      ghost,
+      post => count_used'result <= dev'length;
+   pragma annotate (gnatprove, terminating, count_used);
+   pragma annotate (gnatprove, false_positive,
+      "subprogram ""count_used"" might not terminate", "Count_used is terminating");
+#end if;
 
    -------------
    -- Globals --
@@ -282,54 +311,76 @@ is
       success     : out boolean)
       with
          global =>
-            (in_out => tasks_list),
+           (in_out => tasks_list),
          pre  =>
-            id in applications.t_real_task_id and then
-            ewok.tasks.tasks_list(id).num_devs < ewok.tasks.MAX_DEVS_PER_TASK,
-         post => (if success = false then
-                     descriptor = 0
-                  else
-                     descriptor in t_device_descriptor);
-
+            id /= ID_UNUSED and then
+#if SPARK
+            tasks_list(id).num_devs = count_used (tasks_list(id).devices) and then
+#end if;
+            tasks_list(id).num_devs < MAX_DEVS_PER_TASK and then
+            dev_id /= ID_DEV_UNUSED;
 
    procedure remove_device
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre => id /= ID_UNUSED,
-         global => (in_out => tasks_list);
+         global => (in_out => tasks_list),
+         pre =>
+            id /= ID_UNUSED and then
+#if SPARK
+            tasks_list(id).num_devs = count_used (tasks_list(id).devices) and then
+#end if;
+            tasks_list(id).num_devs > 0;
 
    function is_mounted
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       return boolean
       with
-         pre    => id /= ID_UNUSED,
-         global => (input => tasks_list);
+         global => (input => tasks_list),
+         pre    =>
+#if SPARK
+            id /= ID_UNUSED and then
+            tasks_list(id).num_devs = count_used (tasks_list(id).devices);
+#else
+            id /= ID_UNUSED;
+#end if;
 
    procedure mount_device
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor;
       success        : out boolean)
       with
-         pre    => id /= ID_UNUSED,
          global =>
            (input => ewok.devices.registered_device,
             in_out =>
               (tasks_list,
                ewok.mpu.allocator.regions_pool,
-               m4.mpu.MPU));
+               m4.mpu.MPU)),
+         pre    =>
+#if SPARK
+            id /= ID_UNUSED and then
+            tasks_list(id).num_devs = count_used (tasks_list(id).devices);
+#else
+            id /= ID_UNUSED;
+#end if;
 
    procedure unmount_device
      (id             : in  ewok.tasks_shared.t_task_id;
       dev_descriptor : in  t_device_descriptor)
       with
-         pre => id /= ID_UNUSED,
          global =>
            (input => ewok.devices.registered_device,
             in_out =>
               (tasks_list,
                ewok.mpu.allocator.regions_pool,
-               m4.mpu.MPU));
+               m4.mpu.MPU)),
+         pre =>
+#if SPARK
+            id /= ID_UNUSED and then
+            tasks_list(id).num_devs = count_used (tasks_list(id).devices);
+#else
+            id /= ID_UNUSED;
+#end if;
 
 end ewok.tasks;

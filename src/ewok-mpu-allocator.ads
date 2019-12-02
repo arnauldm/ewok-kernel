@@ -45,13 +45,20 @@ is
 
    function free_region_exist return boolean;
 
-
-   -- Used for verification
-   function to_next_power_of_2 (n : unsigned_32)
-      return unsigned_32;
-
    function is_power_of_2 (n : unsigned_32)
-      return boolean;
+      return boolean
+   with
+      post =>
+         (if is_power_of_2'result then
+            (n and (n - 1)) = 0);
+
+   function to_next_power_of_2 (n : unsigned_32)
+      return unsigned_32
+   with
+      pre  => n > 0 and n <= 2*GBYTE,
+      post =>
+         to_next_power_of_2'result >= n and
+         is_power_of_2 (to_next_power_of_2'result);
 
    procedure map_in_pool
      (addr           : in  system_address;

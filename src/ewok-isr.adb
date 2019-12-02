@@ -60,11 +60,12 @@ is
 
       if soc.dma.soc_is_dma_irq (intr) then
          ewok.dma.get_status_register (task_id, intr, dma_status, ok);
-         if ok then
-            status := to_unsigned_32 (dma_status) and 2#0011_1101#;
-         else
+         -- Not ok if not a DMA interrupt or no task owns the associated DMA
+         -- stream
+         if not ok then
             raise program_error;
          end if;
+         status := to_unsigned_32 (dma_status) and 2#0011_1101#;
          ewok.dma.clear_dma_interrupts (task_id, intr);
       else
          -- INFO: this function should be executed as a critical section
