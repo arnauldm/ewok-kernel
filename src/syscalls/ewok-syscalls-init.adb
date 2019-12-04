@@ -33,7 +33,7 @@ with ewok.sched;
 with ewok.debug;
 
 package body ewok.syscalls.init
-   with spark_mode => off
+   with spark_mode => on
 is
 
    package TSK renames ewok.tasks;
@@ -102,6 +102,7 @@ is
          return;
       end if;
 
+#if not SPARK
       -- Ada based sanitization
       -- /!\ Should be remove for SPARK verification
       if not udev'valid_scalars
@@ -111,6 +112,7 @@ is
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
+#end if;
 
       if TSK.is_real_user (caller_id) and then
          not ewok.devices.sanitize_user_defined_device (udev, caller_id)
@@ -242,7 +244,7 @@ is
    is
 
       target_name : ewok.tasks_shared.t_task_name
-         with address => to_address (params(1));
+         with import, address => to_address (params(1));
 
       target_id_address : constant system.address := to_address (params(2));
       target_id   : ewok.tasks_shared.t_task_id
@@ -305,4 +307,3 @@ is
    end svc_get_taskid;
 
 end ewok.syscalls.init;
-

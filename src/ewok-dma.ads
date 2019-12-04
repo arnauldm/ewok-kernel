@@ -53,7 +53,10 @@ is
 
    procedure get_registered_dma_entry
      (index    : out ewok.dma_shared.t_registered_dma_index;
-      success  : out boolean);
+      success  : out boolean)
+   with
+      global =>
+        (in_out => registered_dma);
 
    function has_same_dma_channel
      (index       : ewok.dma_shared.t_registered_dma_index;
@@ -81,9 +84,9 @@ is
      (index : in ewok.dma_shared.t_registered_dma_index);
 
    procedure enable_dma_irq
-     (index : in ewok.dma_shared.t_registered_dma_index)
-      with
-         pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
+     (index : in ewok.dma_shared.t_registered_dma_index);
+--   with
+--      pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
 
    function is_config_complete
      (config : soc.dma.interfaces.t_dma_config)
@@ -95,16 +98,16 @@ is
       to_configure   : ewok.exported.dma.t_config_mask;
       mode           : ewok.tasks_shared.t_task_mode)
       return boolean
-      with
-         pre => caller_id /= ID_UNUSED;
+   with
+      pre => caller_id /= ID_UNUSED;
 
    function sanitize_dma_shm
      (shm            : ewok.exported.dma.t_dma_shm_info;
       caller_id      : ewok.tasks_shared.t_task_id;
       mode           : ewok.tasks_shared.t_task_mode)
       return boolean
-      with
-         pre => caller_id /= ID_UNUSED;
+   with
+      pre => caller_id /= ID_UNUSED;
 
    procedure reconfigure_stream
      (user_config    : in out ewok.exported.dma.t_dma_user_config;
@@ -112,18 +115,18 @@ is
       to_configure   : in     ewok.exported.dma.t_config_mask;
       caller_id      : in     ewok.tasks_shared.t_task_id;
       success        : out    boolean)
-      with
-         pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
+   with
+      pre => registered_dma(index).periph_id /= soc.devmap.NO_PERIPH;
 
    procedure init_stream
      (user_config    : in     ewok.exported.dma.t_dma_user_config;
       caller_id      : in     ewok.tasks_shared.t_task_id;
       index          : out    ewok.dma_shared.t_registered_dma_index;
       success        : out    boolean)
-      with
-         post =>
-           (if success then
-               registered_dma(index).periph_id /= soc.devmap.NO_PERIPH);
+   with
+      post =>
+        (if success then
+            registered_dma(index).periph_id /= soc.devmap.NO_PERIPH);
 
    procedure init;
 

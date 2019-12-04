@@ -26,17 +26,17 @@ with ewok.sanitize;
 with ewok.debug;
 
 package body ewok.syscalls.log
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_log
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in  ewok.tasks_shared.t_task_id;
+      params      : in  t_parameters;
+      mode        : in  ewok.tasks_shared.t_task_mode)
    is
       -- Message size
       size  : positive
-         with address => params(1)'address;
+         with import, address => params(1)'address;
 
       -- Message address
       msg_address : constant system.address := to_address (params(2));
@@ -61,7 +61,8 @@ is
 
       declare
          -- Message
-         msg   : string (1 .. size)
+         msg_size : constant positive := size;
+         msg      : string (1 .. msg_size)
             with address => msg_address;
       begin
          pragma DEBUG (debug.log

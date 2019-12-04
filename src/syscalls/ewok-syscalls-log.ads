@@ -31,9 +31,9 @@ package ewok.syscalls.log
 is
 
    procedure svc_log
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in  ewok.tasks_shared.t_task_id;
+      params      : in  t_parameters;
+      mode        : in  ewok.tasks_shared.t_task_mode)
    with
       global => (in_out => ewok.tasks.tasks_list),
       pre => caller_id in applications.t_real_task_id;

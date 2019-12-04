@@ -123,6 +123,7 @@ is
    end record;
 
    subtype t_device_descriptor is unsigned_8 range 1 .. MAX_DEVS_PER_TASK;
+   subtype t_device_descriptor_ext is unsigned_8 range 0 .. MAX_DEVS_PER_TASK;
    type t_device_list_unbound is
       array (t_device_descriptor range <>) of t_device;
    subtype t_device_list is t_device_list_unbound (t_device_descriptor);
@@ -153,7 +154,7 @@ is
       dma_shm           : t_dma_shm_info_list (1 .. MAX_DMA_SHM_PER_TASK);
       num_dma_id        : unsigned_32 range 0 .. MAX_DMAS_PER_TASK      := 0;
       dma_id            : t_registered_dma_index_list (1 .. MAX_DMAS_PER_TASK);
-      num_devs          : unsigned_8 range 0 .. MAX_DEVS_PER_TASK       := 0;
+      num_devs          : t_device_descriptor_ext := 0;
       devices           : t_device_list;
       init_done         : boolean         := false;
       data_slot_start   : system_address  := 0;
@@ -307,7 +308,7 @@ is
    procedure append_device
      (id          : in  ewok.tasks_shared.t_task_id;
       dev_id      : in  ewok.devices_shared.t_device_id;
-      descriptor  : out unsigned_8;
+      descriptor  : out t_device_descriptor_ext;
       success     : out boolean)
       with
          global =>
@@ -318,7 +319,11 @@ is
             tasks_list(id).num_devs = count_used (tasks_list(id).devices) and then
 #end if;
             tasks_list(id).num_devs < MAX_DEVS_PER_TASK and then
-            dev_id /= ID_DEV_UNUSED;
+            dev_id /= ID_DEV_UNUSED,
+         post =>
+           (if success then descriptor in t_device_descriptor'range) and
+           (for all i in 1 .. tasks_list(id).num_devs =>
+               tasks_list(id).devices(i).device_id /= ID_DEV_UNUSED);
 
    procedure remove_device
      (id             : in  ewok.tasks_shared.t_task_id;

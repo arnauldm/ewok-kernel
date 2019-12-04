@@ -410,7 +410,9 @@ is
             intr = soc.interrupts.INT_DMA2_STREAM6 or
             intr = soc.interrupts.INT_DMA2_STREAM7
          then
-            success);
+            success
+         else
+            not success);
 
    function soc_is_dma_irq
       (intr : soc.interrupts.t_interrupt)

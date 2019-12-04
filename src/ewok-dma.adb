@@ -156,6 +156,10 @@ is
          registered_dma(index).periph_id;
    begin
 
+      if periph_id = soc.devmap.NO_PERIPH then
+         raise program_error;
+      end if;
+
       declare
          -- DMAs have only one IRQ line per stream
          intr  : constant soc.interrupts.t_interrupt :=
@@ -547,12 +551,13 @@ is
       soc_dma_id     : soc.dma.t_dma_periph_index;
       soc_stream_id  : soc.dma.t_stream_index;
       ok : boolean;
-      pragma unreferenced (ok);
    begin
 
       soc.dma.get_dma_stream_from_interrupt
         (interrupt, soc_dma_id, soc_stream_id, ok);
-         -- ok is proved to be always true here
+
+      -- ok should be always true
+      pragma assert (ok);
 
       if not task_owns_dma_stream (caller_id, t_controller (soc_dma_id),
                                    t_stream (soc_stream_id))

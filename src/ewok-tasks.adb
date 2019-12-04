@@ -184,7 +184,7 @@ is
    procedure append_device
      (id          : in  ewok.tasks_shared.t_task_id;
       dev_id      : in  ewok.devices_shared.t_device_id;
-      descriptor  : out unsigned_8;
+      descriptor  : out t_device_descriptor_ext;
       success     : out boolean)
    is
    begin

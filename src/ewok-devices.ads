@@ -94,7 +94,8 @@ is
       dev_id   : out t_device_id;
       success  : out boolean)
    with
-      pre   => task_id /= ID_UNUSED;
+      pre   => task_id /= ID_UNUSED,
+      post  => (if success then dev_id /= ID_DEV_UNUSED);
 
    procedure release_device
      (task_id  : in  t_task_id;

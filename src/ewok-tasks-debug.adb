@@ -19,10 +19,7 @@
 --     limitations under the License.
 --
 
-with ewok.debug;
-with ewok.sched;
 with ewok.tasks;
-with m4.scb;
 
 package body ewok.tasks.debug
    with spark_mode => on
