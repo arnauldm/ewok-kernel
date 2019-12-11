@@ -317,7 +317,7 @@ is
       -- Releasing the device
       --
 
-#if SPARK
+#if GNATPROVE
       pragma assert
         (TSK.tasks_list(caller_id).num_devs =
             TSK.count_used (TSK.tasks_list(caller_id).devices));
@@ -328,7 +328,7 @@ is
          TSK.unmount_device (caller_id, dev_descriptor);
       end if;
 
-#if SPARK
+#if GNATPROVE
       pragma assume
         (TSK.tasks_list(caller_id).num_devs =
             TSK.count_used (TSK.tasks_list(caller_id).devices));

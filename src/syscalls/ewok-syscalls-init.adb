@@ -102,7 +102,7 @@ is
          return;
       end if;
 
-#if not SPARK
+#if not GNATPROVE
       -- Ada based sanitization
       -- /!\ Should be remove for SPARK verification
       if not udev'valid_scalars

@@ -22,18 +22,34 @@
 
 with ewok.tasks_shared;
 with ewok.tasks;        use ewok.tasks;
+with ewok.gpio;
+with soc.exti;
+with soc.gpio;
+with soc.nvic;
 with applications;
 
 package ewok.syscalls.cfg.gpio
    with spark_mode => on
 is
    procedure svc_gpio_set
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in  ewok.tasks_shared.t_task_id;
+      params      : in  t_parameters;
+      mode        : in  ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input => ewok.gpio.gpio_points,
+            in_out =>
+              (tasks_list,
+               soc.gpio.GPIOA,
+               soc.gpio.GPIOB,
+               soc.gpio.GPIOC,
+               soc.gpio.GPIOD,
+               soc.gpio.GPIOE,
+               soc.gpio.GPIOF,
+               soc.gpio.GPIOG,
+               soc.gpio.GPIOH,
+               soc.gpio.GPIOI));
 
    procedure svc_gpio_get
      (caller_id   : in     ewok.tasks_shared.t_task_id;
@@ -41,14 +57,21 @@ is
       mode        : in     ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input => ewok.gpio.gpio_points,
+            in_out => tasks_list);
 
    procedure svc_gpio_unlock_exti
-     (caller_id   : in     ewok.tasks_shared.t_task_id;
-      params      : in out t_parameters;
-      mode        : in     ewok.tasks_shared.t_task_mode)
+     (caller_id   : in  ewok.tasks_shared.t_task_id;
+      params      : in  t_parameters;
+      mode        : in  ewok.tasks_shared.t_task_mode)
       with
          pre => caller_id in applications.t_real_task_id,
-         global => (in_out => tasks_list);
+         global =>
+           (input => ewok.gpio.gpio_points,
+            in_out =>
+              (tasks_list,
+               soc.exti.EXTI,
+               soc.nvic.nvic));
 
 end ewok.syscalls.cfg.gpio;

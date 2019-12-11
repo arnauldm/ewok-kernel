@@ -23,6 +23,7 @@
 with ewok.tasks;        use ewok.tasks;
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.sched;
+with ewok.sanitize;
 with ewok.syscalls.cfg.dev;
 with ewok.syscalls.cfg.gpio;
 with ewok.syscalls.gettick;
@@ -35,6 +36,7 @@ with ewok.syscalls.rng;
 with ewok.syscalls.sleep;
 with ewok.syscalls.yield;
 with ewok.syscalls.exiting;
+with ewok.debug;
 
 #if CONFIG_KERNEL_DMA_ENABLE
 with ewok.syscalls.dma;
@@ -100,7 +102,32 @@ is
       -- Getting svc parameters from caller's stack
       --
 
-      svc_params_a := to_parameters_access (frame_a.all.R0);
+      if
+         ewok.sanitize.is_word_in_data_slot
+           (frame_a.all.R0, current_id, current_task.mode)
+      then
+         svc_params_a := to_parameters_access (frame_a.all.R0);
+      else
+         if svc /= SVC_EXIT      and
+            svc /= SVC_YIELD     and
+            svc /= SVC_RESET     and
+            svc /= SVC_INIT_DONE and
+            svc /= SVC_LOCK_ENTER and
+            svc /= SVC_LOCK_EXIT
+         then
+            -- R0 points outside the caller's data area
+            pragma DEBUG (debug.log (debug.ERROR,
+               ewok.tasks.tasks_list(current_id).name &
+               "svc_handler(): invalid R0: " &
+               unsigned_32'image (frame_a.all.R0)));
+            ewok.tasks.set_state
+              (current_id, TASK_MODE_MAINTHREAD, TASK_STATE_RUNNABLE);
+            set_return_value
+              (current_id, current_task.mode, SYS_E_DENIED);
+            new_frame_a := frame_a;
+            return;
+         end if;
+      end if;
 
       -------------------
       -- Managing SVCs --
@@ -136,7 +163,6 @@ is
             new_frame_a := frame_a;
 
          when SVC_LOG            =>
-
             ewok.syscalls.log.svc_log
               (current_id, svc_params_a.all, current_task.mode);
             new_frame_a := frame_a;
@@ -194,11 +220,13 @@ is
             ewok.sched.do_schedule (frame_a, new_frame_a);
 
          when SVC_GPIO_SET       =>
-            ewok.syscalls.cfg.gpio.svc_gpio_set (current_id, svc_params_a.all, current_task.mode);
+            ewok.syscalls.cfg.gpio.svc_gpio_set
+              (current_id, svc_params_a.all, current_task.mode);
             new_frame_a := frame_a;
 
          when SVC_GPIO_GET       =>
-            ewok.syscalls.cfg.gpio.svc_gpio_get (current_id, svc_params_a.all, current_task.mode);
+            ewok.syscalls.cfg.gpio.svc_gpio_get
+              (current_id, svc_params_a.all, current_task.mode);
             new_frame_a := frame_a;
 
          when SVC_GPIO_UNLOCK_EXTI =>

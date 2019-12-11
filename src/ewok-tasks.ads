@@ -188,7 +188,7 @@ is
    -- Ghost --
    -----------
 
-#if SPARK
+#if GNATPROVE
    -- FIXME - Must enable pragmas no_recursion and no_secondary_stack
 
    function remove_last (dev : t_device_list_unbound)
@@ -315,7 +315,7 @@ is
            (in_out => tasks_list),
          pre  =>
             id /= ID_UNUSED and then
-#if SPARK
+#if GNATPROVE
             tasks_list(id).num_devs = count_used (tasks_list(id).devices) and then
 #end if;
             tasks_list(id).num_devs < MAX_DEVS_PER_TASK and then
@@ -332,7 +332,7 @@ is
          global => (in_out => tasks_list),
          pre =>
             id /= ID_UNUSED and then
-#if SPARK
+#if GNATPROVE
             tasks_list(id).num_devs = count_used (tasks_list(id).devices) and then
 #end if;
             tasks_list(id).num_devs > 0;
@@ -344,7 +344,7 @@ is
       with
          global => (input => tasks_list),
          pre    =>
-#if SPARK
+#if GNATPROVE
             id /= ID_UNUSED and then
             tasks_list(id).num_devs = count_used (tasks_list(id).devices);
 #else
@@ -363,7 +363,7 @@ is
                ewok.mpu.allocator.regions_pool,
                m4.mpu.MPU)),
          pre    =>
-#if SPARK
+#if GNATPROVE
             id /= ID_UNUSED and then
             tasks_list(id).num_devs = count_used (tasks_list(id).devices);
 #else
@@ -381,7 +381,7 @@ is
                ewok.mpu.allocator.regions_pool,
                m4.mpu.MPU)),
          pre =>
-#if SPARK
+#if GNATPROVE
             id /= ID_UNUSED and then
             tasks_list(id).num_devs = count_used (tasks_list(id).devices);
 #else

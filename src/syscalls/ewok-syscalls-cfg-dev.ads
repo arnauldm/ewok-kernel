@@ -73,7 +73,7 @@ is
       mode        : in ewok.tasks_shared.t_task_mode)
       with
          pre =>
-#if SPARK
+#if GNATPROVE
             caller_id in applications.t_real_task_id and then
            (ewok.tasks.tasks_list(caller_id).num_devs =
                ewok.tasks.count_used (ewok.tasks.tasks_list(caller_id).devices)),
