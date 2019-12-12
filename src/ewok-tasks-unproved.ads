@@ -22,7 +22,6 @@
 
 with soc.layout;
 
-
 package ewok.tasks.unproved
    with spark_mode => on
 is
@@ -53,7 +52,12 @@ is
          post => frame_a /= NULL,
          global => ( in_out => tasks_list );
 
-   procedure set_default_values (tsk : out t_task);
+   procedure set_default_values (tsk : out t_task)
+      with
+         post =>
+            tsk.num_dma_id = 0 and
+           (for all i in tsk.dma_id'range =>
+               tsk.dma_id(i) = ewok.dma_shared.ID_DMA_UNUSED);
 
    procedure init_softirq_task;
    procedure init_idle_task;

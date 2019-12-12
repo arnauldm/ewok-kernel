@@ -85,7 +85,9 @@ ada_footer= """);
    function find_dma_periph
      (id       : soc.dma.t_dma_periph_index;
       stream   : soc.dma.t_stream_index)
-      return t_periph_id;
+      return t_periph_id
+         with
+            post => find_dma_periph'result /= NO_PERIPH;
 
 
 end soc.devmap;

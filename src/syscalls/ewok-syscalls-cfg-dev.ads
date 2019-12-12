@@ -58,7 +58,15 @@ is
       params      : in out t_parameters;
       mode        : in ewok.tasks_shared.t_task_mode)
       with
-         pre => caller_id in applications.t_real_task_id,
+#if GNATPROVE
+         pre =>
+            caller_id in applications.t_real_task_id and then
+            tasks_list(caller_id).num_devs =
+               count_used (tasks_list(caller_id).devices),
+#else
+         pre =>
+            caller_id in applications.t_real_task_id,
+#end if;
          global =>
            (input =>
                ewok.devices.registered_device,

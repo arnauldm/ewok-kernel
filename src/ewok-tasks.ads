@@ -25,7 +25,7 @@ with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.devices_shared;  use ewok.devices_shared;
 with ewok.ipc;
 with ewok.exported.dma;
-with ewok.dma_shared;
+with ewok.dma_shared;      use ewok.dma_shared;
 with ewok.mpu.allocator;
 with ewok.devices;
 with applications;
@@ -171,7 +171,10 @@ is
       isr_ctx           : t_isr_context;
    end record
       with
-         dynamic_predicate => slot_in_bounds (slot, num_slots);
+         dynamic_predicate =>
+            slot_in_bounds (slot, num_slots) and
+           (for all i in 1 .. num_dma_id =>
+               dma_id(i) /= ewok.dma_shared.ID_DMA_UNUSED);
 
    function slot_in_bounds
      (slot : m4.mpu.t_subregion;
@@ -181,8 +184,17 @@ is
      (num_slots <= m4.mpu.t_subregion'last and
       num_slots + unsigned_8 (slot) - 1 <= m4.mpu.t_subregion'last);
 
-
    type t_task_array is array (t_task_id range <>) of t_task;
+
+   -------------
+   -- Globals --
+   -------------
+
+   -- The list of the running tasks
+   tasks_list : t_task_array (ID_APP1 .. ID_KERNEL);
+
+   softirq_task_name : t_task_name := "SOFTIRQ" & "   ";
+   idle_task_name    : t_task_name := "IDLE" & "      ";
 
    -----------
    -- Ghost --
@@ -211,15 +223,12 @@ is
       "subprogram ""count_used"" might not terminate", "Count_used is terminating");
 #end if;
 
-   -------------
-   -- Globals --
-   -------------
-
-   -- The list of the running tasks
-   tasks_list : t_task_array (ID_APP1 .. ID_KERNEL);
-
-   softirq_task_name : t_task_name := "SOFTIRQ" & "   ";
-   idle_task_name    : t_task_name := "IDLE" & "      ";
+   function dma_id_invariant (id : t_task_id) return boolean is
+     (for all i in 1 .. tasks_list(id).num_dma_id =>
+        (tasks_list(id).dma_id(i) /= ewok.dma_shared.ID_DMA_UNUSED))
+   with
+      ghost,
+      pre => id /= ID_UNUSED;
 
    ---------------
    -- Functions --

@@ -36,7 +36,6 @@ is
       params      : in t_parameters;
       mode        : in ewok.tasks_shared.t_task_mode)
       with
-         pre => caller_id in applications.t_real_task_id,
          global =>
            (input =>
               (ewok.devices.registered_device),
@@ -45,7 +44,12 @@ is
                ewok.interrupts.interrupt_table,
                ewok.dma.registered_dma,
                soc.dma.DMA1,
-               soc.dma.DMA2));
+               soc.dma.DMA2)),
+         pre =>
+            caller_id in applications.t_real_task_id and then
+            ewok.tasks.dma_id_invariant (caller_id),
+         post =>
+            ewok.tasks.dma_id_invariant (caller_id);
 
    procedure svc_register_dma_shm
      (caller_id   : in ewok.tasks_shared.t_task_id;
@@ -64,7 +68,9 @@ is
       params      : in t_parameters;
       mode        : in ewok.tasks_shared.t_task_mode)
       with
-         pre => caller_id in applications.t_real_task_id,
+         pre =>
+            caller_id in applications.t_real_task_id and then
+            ewok.tasks.dma_id_invariant (caller_id),
          global =>
            (input =>
               (ewok.devices.registered_device),

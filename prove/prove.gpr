@@ -30,7 +30,7 @@ project Prove is
          "--level=4",
          "--proof=per_check",
          "--prover=all",
-         "--timeout=5"); -- prover timeout in seconds
+         "--timeout=10"); -- prover timeout in seconds
    end Prove;
 
 end Prove;

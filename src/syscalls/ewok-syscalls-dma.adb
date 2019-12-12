@@ -153,10 +153,7 @@ is
       end if;
 
       -- Is there any user dma_descriptor available ?
-      if TSK.tasks_list(caller_id).num_dma_id < MAX_DMAS_PER_TASK then
-         TSK.tasks_list(caller_id).num_dma_id :=
-            TSK.tasks_list(caller_id).num_dma_id + 1;
-      else
+      if TSK.tasks_list(caller_id).num_dma_id = MAX_DMAS_PER_TASK then
          dma_descriptor := 0;
          TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
@@ -174,8 +171,9 @@ is
          return;
       end if;
 
-      dma_descriptor := TSK.tasks_list(caller_id).num_dma_id;
+      dma_descriptor := TSK.tasks_list(caller_id).num_dma_id + 1;
       TSK.tasks_list(caller_id).dma_id(dma_descriptor) := index;
+      TSK.tasks_list(caller_id).num_dma_id := dma_descriptor;
 
       TSK.set_return_value (caller_id, mode, SYS_E_DONE);
       TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
