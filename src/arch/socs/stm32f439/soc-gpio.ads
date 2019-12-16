@@ -44,10 +44,10 @@ is
       with size => 2;
 
    for t_pin_mode use
-     (MODE_IN     => 0,
-      MODE_OUT    => 1,
-      MODE_AF     => 2,
-      MODE_ANALOG => 3);
+     (MODE_IN     => 2#00#,
+      MODE_OUT    => 2#01#,
+      MODE_AF     => 2#10#,
+      MODE_ANALOG => 2#11#);
 
    type t_pins_mode is array (t_gpio_pin_index) of t_pin_mode
       with pack, size => 32;
