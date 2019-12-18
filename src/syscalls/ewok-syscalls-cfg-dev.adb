@@ -39,12 +39,10 @@ is
       params      : in out t_parameters;
       mode        : in     ewok.tasks_shared.t_task_mode)
    is
-
-      dev_descriptor : unsigned_8
+      dev_descriptor : t_device_descriptor
          with import, address => params(1)'address;
-
-      dev_id      : ewok.devices_shared.t_registered_device_id;
-      ok          : boolean;
+      dev_id         : ewok.devices_shared.t_registered_device_id;
+      ok             : boolean;
    begin
 
       --
@@ -65,7 +63,7 @@ is
          return;
       end if;
 
-      -- No map/unmap before end of initialization
+      -- No map before end of initialization
       if not is_init_done (caller_id) then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
@@ -75,9 +73,10 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       -- Valid device descriptor ?
-      if dev_descriptor not in TSK.tasks_list(caller_id).devices'range
-      then
+      if not dev_descriptor'valid then
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": dev_map(): invalid device descriptor"));
@@ -226,7 +225,7 @@ is
       -- Defensive programming. Verifying that the device really belongs to the
       -- task
       if ewok.devices.get_task_from_id (dev_id) /= caller_id then
-         raise program_error;
+         raise program_error; -- proved unreachable
       end if;
 
       -- Verifying that the device may be voluntary unmapped by the task

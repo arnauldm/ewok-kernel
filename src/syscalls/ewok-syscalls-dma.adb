@@ -52,7 +52,7 @@ is
       dma_descriptor           : unsigned_32
          with import, address => dma_descriptor_address;
 
-      index                : ewok.dma_shared.t_registered_dma_index;
+      index                : ewok.dma_shared.t_user_dma_index;
       ok                   : boolean;
    begin
 
@@ -170,6 +170,8 @@ is
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
       end if;
+
+      pragma assert (index /= ID_DMA_UNUSED);
 
       dma_descriptor := TSK.tasks_list(caller_id).num_dma_id + 1;
       TSK.tasks_list(caller_id).dma_id(dma_descriptor) := index;
@@ -353,7 +355,7 @@ is
       if TSK.tasks_list(caller_id).dma_id(dma_descriptor)
             = ewok.dma_shared.ID_DMA_UNUSED
       then
-         raise program_error;
+         raise program_error; -- proved unreachable
       end if;
 
       -- Check if the user tried to change the DMA ctrl/channel/stream
@@ -438,7 +440,7 @@ is
       if TSK.tasks_list(caller_id).dma_id(dma_descriptor)
             = ewok.dma_shared.ID_DMA_UNUSED
       then
-         raise program_error;
+         raise program_error; -- proved unreachable
       end if;
 
       ewok.dma.enable_dma_stream
@@ -480,7 +482,7 @@ is
       if TSK.tasks_list(caller_id).dma_id(dma_descriptor)
             = ewok.dma_shared.ID_DMA_UNUSED
       then
-         raise program_error;
+         raise program_error; -- proved unreachable
       end if;
 
       ewok.dma.disable_dma_stream

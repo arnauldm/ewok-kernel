@@ -52,6 +52,8 @@ is
          return;
       end if;
 
+      pragma warnings (off, "attribute Valid is assumed to return True");
+
       -- Valid t_gpio_ref ?
       if not ref.pin'valid or not ref.port'valid then
          set_return_value (caller_id, mode, SYS_E_INVAL);

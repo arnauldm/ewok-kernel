@@ -65,7 +65,11 @@ is
       subregions       : unsigned_8;
       interrupt_list   : t_interrupt_list;
       ro               : boolean;
-   end record;
+   end record
+      with dynamic_predicate =>
+        (for all i in interrupt_list'range =>
+           (interrupt_list(i) = INT_NONE or
+            interrupt_list(i) > INT_SYSTICK));
 
    -- STM32F4 devices map
    -- This structure define all available devices and associated informations.
