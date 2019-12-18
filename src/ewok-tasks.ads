@@ -173,8 +173,9 @@ is
       with
          dynamic_predicate =>
             slot_in_bounds (slot, num_slots) and
-           (for all i in 1 .. num_dma_id =>
-               dma_id(i) /= ewok.dma_shared.ID_DMA_UNUSED);
+           (if num_dma_id > 0 then
+              (for all i in 1 .. num_dma_id =>
+                  dma_id(i) /= ewok.dma_shared.ID_DMA_UNUSED));
 
    function slot_in_bounds
      (slot : m4.mpu.t_subregion;
@@ -305,7 +306,8 @@ is
       with
          inline,
          pre    => id /= ID_UNUSED,
-         global => (in_out => tasks_list);
+         global =>
+           (in_out => tasks_list);
 
    function is_init_done
      (id    : ewok.tasks_shared.t_task_id)
@@ -330,6 +332,7 @@ is
             tasks_list(id).num_devs < MAX_DEVS_PER_TASK and then
             dev_id /= ID_DEV_UNUSED,
          post =>
+           (if tasks_list(id).num_devs'old < MAX_DEVS_PER_TASK then success) and
            (if success then descriptor in t_device_descriptor'range) and
            (for all i in 1 .. tasks_list(id).num_devs =>
                tasks_list(id).devices(i).device_id /= ID_DEV_UNUSED);
