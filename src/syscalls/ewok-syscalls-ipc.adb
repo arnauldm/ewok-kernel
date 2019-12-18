@@ -520,17 +520,24 @@ is
 
          ewok.ipc.get_endpoint (ep_id, ok);
          if not ok then
-            -- FIXME
-            debug.panic ("send(): EndPoint starvation !O_+");
-            raise program_error;
+            pragma DEBUG
+              (debug.log (debug.ERROR, "send(): EndPoint starvation !O_+"));
+            TSK.set_return_value (caller_id, mode, SYS_E_BUSY);
+            TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+            return;
          end if;
 
          TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver) := ep_id;
          TSK.tasks_list(id_receiver).ipc_endpoint_id(caller_id) := ep_id;
 
       else
+         -- FIXME - Should be proved
+         --pragma assert
+         --  (TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver) =
+         --   TSK.tasks_list(id_receiver).ipc_endpoint_id(caller_id));
          ep_id := TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver);
       end if;
+
 
       -----------------------
       -- Sending a message --

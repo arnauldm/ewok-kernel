@@ -21,6 +21,7 @@
 --
 
 with soc.layout;
+with ewok.ipc; use type ewok.ipc.t_extended_endpoint_id;
 
 package ewok.tasks.unproved
    with spark_mode => on
@@ -57,7 +58,9 @@ is
          post =>
             tsk.num_dma_id = 0 and
            (for all i in tsk.dma_id'range =>
-               tsk.dma_id(i) = ewok.dma_shared.ID_DMA_UNUSED);
+               tsk.dma_id(i) = ewok.dma_shared.ID_DMA_UNUSED) and
+           (for all i in tsk.ipc_endpoint_id'range =>
+               tsk.ipc_endpoint_id(i) = ewok.ipc.ID_ENDPOINT_UNUSED);
 
    procedure init_softirq_task;
    procedure init_idle_task;
