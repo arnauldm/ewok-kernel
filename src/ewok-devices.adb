@@ -116,6 +116,7 @@ is
       -- Retrieving the dev_id from the interrupt
       dev_id := ewok.interrupts.get_device_from_interrupt (interrupt);
       if dev_id = ID_DEV_UNUSED then
+         config   := (others => <>);
          success  := false;
          return;
       end if;
@@ -131,6 +132,7 @@ is
          end if;
       end loop;
 
+      config  := (others => <>);
       success := false;
    end get_interrupt_config;
 
