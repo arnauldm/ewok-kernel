@@ -58,6 +58,16 @@ is
    end get_registered_dma_entry;
 
 
+   procedure release_registered_dma_entry
+     (index    : in  ewok.dma_shared.t_registered_dma_index)
+   is
+   begin
+      registered_dma(index).status     := DMA_UNUSED;
+      registered_dma(index).task_id    := ID_UNUSED;
+      registered_dma(index).periph_id  := soc.devmap.NO_PERIPH;
+   end release_registered_dma_entry;
+
+
    function has_same_dma_channel
      (index       : ewok.dma_shared.t_registered_dma_index;
       user_config : ewok.exported.dma.t_dma_user_config)
@@ -437,7 +447,7 @@ is
    procedure init_stream
      (user_config    : in     ewok.exported.dma.t_dma_user_config;
       caller_id      : in     ewok.tasks_shared.t_task_id;
-      index          : out    ewok.dma_shared.t_registered_dma_index;
+      index          : out    ewok.dma_shared.t_user_dma_index;
       success        : out    boolean)
    is
       periph_id   : soc.devmap.t_periph_id;
@@ -473,7 +483,6 @@ is
          mem_burst_size    => user_config.mem_burst_size,
          periph_burst_size => user_config.periph_burst_size);
 
-      registered_dma(index).task_id    := caller_id;
       registered_dma(index).periph_id  :=
          soc.devmap.find_dma_periph
            (soc.dma.t_dma_periph_index (user_config.controller),
@@ -482,8 +491,10 @@ is
       periph_id := registered_dma(index).periph_id;
 
       if periph_id = soc.devmap.NO_PERIPH then
-         raise program_error;
+         raise program_error; -- proved unreachable
       end if;
+
+      registered_dma(index).task_id    := caller_id;
 
       -- Set up the interrupt handler
       case user_config.transfer_dir is
@@ -510,15 +521,15 @@ is
             end if;
 
          when MEMORY_TO_MEMORY      =>
-            pragma DEBUG (debug.log ("dma.init(): MEMORY_TO_MEMORY not implemented"));
+            pragma DEBUG
+              (debug.log ("dma.init(): MEMORY_TO_MEMORY not implemented"));
+            release_registered_dma_entry (index);
             success := false;
             return;
       end case;
 
       if is_config_complete (registered_dma(index).config) then
          registered_dma(index).status := DMA_CONFIGURED;
-      else
-         registered_dma(index).status := DMA_USED;
       end if;
 
       -- Reset the DMA stream

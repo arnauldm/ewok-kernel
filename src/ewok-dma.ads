@@ -21,7 +21,7 @@
 --
 
 with ewok.tasks_shared; use ewok.tasks_shared;
-with ewok.dma_shared;
+with ewok.dma_shared;   use ewok.dma_shared;
 with ewok.exported.dma;
 with soc.dma;
 with soc.dma.interfaces;
@@ -41,11 +41,14 @@ is
    type t_status is (DMA_UNUSED, DMA_USED, DMA_CONFIGURED);
 
    type t_registered_dma is record
-      config      : soc.dma.interfaces.t_dma_config;
-      task_id     : ewok.tasks_shared.t_task_id          := ID_UNUSED;
       status      : t_status                             := DMA_UNUSED;
+      task_id     : ewok.tasks_shared.t_task_id          := ID_UNUSED;
       periph_id   : soc.devmap.t_periph_id               := soc.devmap.NO_PERIPH;
-   end record;
+      config      : soc.dma.interfaces.t_dma_config;
+   end record
+      with dynamic_predicate =>
+        (if task_id /= ID_UNUSED then
+            periph_id /= soc.devmap.NO_PERIPH);
 
    registered_dma :
       array (ewok.dma_shared.t_registered_dma_index) of t_registered_dma;
@@ -54,6 +57,14 @@ is
    procedure get_registered_dma_entry
      (index    : out ewok.dma_shared.t_registered_dma_index;
       success  : out boolean)
+   with
+      global =>
+        (in_out => registered_dma),
+      post   =>
+        (if success then registered_dma(index).status = DMA_USED);
+
+   procedure release_registered_dma_entry
+     (index    : in  ewok.dma_shared.t_registered_dma_index)
    with
       global =>
         (in_out => registered_dma);
@@ -121,12 +132,13 @@ is
    procedure init_stream
      (user_config    : in     ewok.exported.dma.t_dma_user_config;
       caller_id      : in     ewok.tasks_shared.t_task_id;
-      index          : out    ewok.dma_shared.t_registered_dma_index;
+      index          : out    ewok.dma_shared.t_user_dma_index;
       success        : out    boolean)
    with
       post =>
         (if success then
-            registered_dma(index).periph_id /= soc.devmap.NO_PERIPH);
+           (index /= ewok.dma_shared.ID_DMA_UNUSED and
+            registered_dma(index).periph_id /= soc.devmap.NO_PERIPH));
 
    procedure init;
 
