@@ -300,7 +300,9 @@ is
    function is_real_user (id : ewok.tasks_shared.t_task_id) return boolean
    is
    begin
-      return (id in applications.t_real_task_id);
+      return
+        (id in applications.t_real_task_id and then
+         tasks_list(id).state /= TASK_STATE_EMPTY);
    end is_real_user;
 
 

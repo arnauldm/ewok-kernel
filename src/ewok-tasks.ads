@@ -244,8 +244,9 @@ is
       with
          post =>
            (if is_real_user'result then
-               id /= ID_UNUSED and
-               id in applications.t_real_task_id);
+               id /= ID_UNUSED and then
+               id in applications.t_real_task_id and then
+               tasks_list(id).state /= TASK_STATE_EMPTY);
 
 #if CONFIG_KERNEL_DOMAIN
    function get_domain (id : in ewok.tasks_shared.t_task_id)
@@ -274,6 +275,11 @@ is
       with
          inline,
          pre    => id /= ID_UNUSED,
+         post   =>
+           (if mode = TASK_MODE_MAINTHREAD then
+               get_state'result = tasks_list(id).state
+            else
+               get_state'result = tasks_list(id).isr_state),
          global => (input => tasks_list);
 
    function get_mode

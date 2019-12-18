@@ -183,13 +183,6 @@ is
             return;
          end if;
 
-         -- Defensive programming test: should *never* be true
-         if TSK.get_state (id_sender, TASK_MODE_MAINTHREAD)
-               = TASK_STATE_EMPTY
-         then
-            raise program_error;
-         end if;
-
          -- A task can't send a message to itself
          if caller_id = id_sender then
             pragma DEBUG (debug.log (debug.ERROR,
@@ -457,13 +450,6 @@ is
          TSK.set_return_value (caller_id, mode, SYS_E_INVAL);
          TSK.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
          return;
-      end if;
-
-      -- Defensive programming test: should *never* be true
-      if TSK.get_state (id_receiver, TASK_MODE_MAINTHREAD)
-            = TASK_STATE_EMPTY
-      then
-         raise program_error;
       end if;
 
       -- A task can't send a message to itself
