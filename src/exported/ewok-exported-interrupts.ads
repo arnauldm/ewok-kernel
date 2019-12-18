@@ -93,7 +93,7 @@ is
       array (t_posthook_instruction_number'range) of t_posthook_instruction;
 
    type t_interrupt_posthook is record
-      action      : t_posthook_instruction_list; -- Reading, writing, masking...
+      action      : t_posthook_instruction_list := (others => (instr => POSTHOOK_NIL));
       status      : unsigned_32  := 0;
       data        : unsigned_32  := 0;
    end record;
