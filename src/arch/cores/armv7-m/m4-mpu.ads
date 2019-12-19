@@ -139,7 +139,8 @@ is
          inline_always,
          global => (in_out => (MPU));
 
-   -- Only used by SPARK prover
+   -- Return true if configured region is executable and writable 
+   -- by the CPU in privileged or unprivileged mode
    function region_rwx(region : t_region_config) return boolean
       is (region.xn = false and
           (region.access_perm = REGION_PERM_PRIV_RW_USER_NO or
