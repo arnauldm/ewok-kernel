@@ -24,7 +24,6 @@
 with m4.cpu;
 with ewok.tasks_shared;    use ewok.tasks_shared;
 with ewok.layout;          use ewok.layout;
-with ewok.ipc;             use ewok.ipc;
 with ewok.rng;
 with ewok.softirq;
 with ewok.debug;

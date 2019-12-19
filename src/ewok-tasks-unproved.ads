@@ -21,7 +21,7 @@
 --
 
 with soc.layout;
-with ewok.ipc; use type ewok.ipc.t_extended_endpoint_id;
+with ewok.ipc; use ewok.ipc;
 
 package ewok.tasks.unproved
    with spark_mode => on
@@ -68,7 +68,6 @@ is
 
    procedure task_init
       with global => null;
-
 
 
 end ewok.tasks.unproved;
