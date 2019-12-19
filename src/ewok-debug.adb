@@ -108,24 +108,20 @@ is
 
 
    procedure init
-     (usart : in unsigned_8)
+     (usart : in soc.usart.interfaces.t_usart_id)
    is
       ok             : boolean;
    begin
 
+      kernel_usart_id := usart;
 
       case usart is
-         when 1 =>
-            kernel_usart_id   := soc.usart.interfaces.ID_USART1;
+         when soc.usart.interfaces.ID_USART1 =>
             TX_pin_config     := USART1_TX_pin_config;
-         when 4 =>
-            kernel_usart_id   := soc.usart.interfaces.ID_UART4;
+         when soc.usart.interfaces.ID_UART4 =>
             TX_pin_config     := USART4_TX_pin_config;
-         when 6 =>
-            kernel_usart_id   := soc.usart.interfaces.ID_USART6;
+         when soc.usart.interfaces.ID_USART6 =>
             TX_pin_config     := USART6_TX_pin_config;
-         when others =>
-            raise program_error;
       end case;
 
       ewok.gpio.register (ID_KERNEL, ID_DEV_UNUSED, TX_pin_config, ok);
@@ -148,7 +144,8 @@ is
       end if;
 
       log (INFO,
-         "EwoK: USART" & unsigned_8'image (usart) & " initialized");
+         "EwoK: USART" & soc.usart.interfaces.t_usart_id'image (usart) &
+         " initialized");
       newline;
 
    end init;
@@ -165,18 +162,28 @@ is
    end putc;
 
 
-   procedure log (s : string; nl : boolean := true)
+   procedure put (s : string)
    is
    begin
-      if s'last > 800 then
-         raise program_error;
-      end if;
       for i in s'range loop
          putc (s(i));
       end loop;
+   end put;
+
+
+   procedure newline
+   is
+   begin
+      put (ASCII.CR & ASCII.LF);
+   end newline;
+
+
+   procedure log (s : string; nl : boolean := true)
+   is
+   begin
+      put (s);
       if nl then
-         putc (ASCII.CR);
-         putc (ASCII.LF);
+         newline;
       end if;
    end log;
 
@@ -184,46 +191,33 @@ is
    procedure log (level : t_level; s : string)
    is
    begin
-      if s'last > 800 then
-         raise program_error;
-      end if;
       case level is
-         when DEBUG =>
-            log (BG_COLOR_ORANGE & s & BG_COLOR_BLACK);
-         when INFO   =>
-            log (BG_COLOR_BLUE & s & BG_COLOR_BLACK);
-         when WARNING         =>
-            log (BG_COLOR_ORANGE & s & BG_COLOR_BLACK);
-         when ERROR .. ALERT  =>
-            log (BG_COLOR_RED & s & BG_COLOR_BLACK);
+         when DEBUG           => put (BG_COLOR_ORANGE);
+         when INFO            => put (BG_COLOR_BLUE);
+         when WARNING         => put (BG_COLOR_ORANGE);
+         when ERROR .. ALERT  => put (BG_COLOR_RED);
       end case;
+      put (s);
+      put (BG_COLOR_BLACK);
    end log;
 
 
    procedure alert (s : string)
    is
    begin
-      if s'last > 800 then
-         raise program_error;
-      end if;
-      log (BG_COLOR_RED & s & BG_COLOR_BLACK, false);
+      put (BG_COLOR_RED);
+      put (s);
+      put (BG_COLOR_BLACK);
    end alert;
-
-
-   procedure newline
-   is
-   begin
-      log ("");
-   end newline;
 
 
    procedure panic (s : string)
    is
    begin
-      if s'last > 800 then
-         raise program_error;
-      end if;
-      log (BG_COLOR_RED & "panic: " & s & BG_COLOR_BLACK);
+      put (BG_COLOR_RED & "panic: ");
+      put (s);
+      put (BG_COLOR_BLACK);
+      newline;
 
 #if CONFIG_KERNEL_PANIC_FREEZE
       loop null; end loop;

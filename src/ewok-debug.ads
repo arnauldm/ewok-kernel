@@ -35,9 +35,7 @@ is
    BG_COLOR_ORANGE   : constant string := ASCII.ESC & "[37;43m";
    BG_COLOR_BLUE     : constant string := ASCII.ESC & "[37;44m";
 
-   procedure init (usart : in unsigned_8);
-
-   procedure putc (c : character);
+   procedure init (usart : in soc.usart.interfaces.t_usart_id);
 
    procedure log (s : string; nl : boolean := true);
    procedure log (level : t_level; s : string);

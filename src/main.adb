@@ -28,6 +28,7 @@ with m4.systick;
 
 with soc.rng;
 with soc.system;
+with soc.usart.interfaces;
 
 with ewok.debug;
 with ewok.dma;
@@ -65,11 +66,11 @@ begin
    -- Configure the USART for debugging purpose
 #if CONFIG_KERNEL_SERIAL
 #if    CONFIG_KERNEL_USART = 1
-   ewok.debug.init (1);
+   ewok.debug.init (soc.usart.interfaces.ID_USART1);
 #elsif CONFIG_KERNEL_USART = 4
-   ewok.debug.init (4);
+   ewok.debug.init (soc.usart.interfaces.ID_UART4);
 #elsif CONFIG_KERNEL_USART = 6
-   ewok.debug.init (6);
+   ewok.debug.init (soc.usart.interfaces.ID_USART6);
 #else
    raise program_error;
 #end if;
