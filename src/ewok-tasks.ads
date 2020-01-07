@@ -172,6 +172,7 @@ is
    end record
       with
          dynamic_predicate =>
+            ctx.frame_a /= NULL and
             slot_in_bounds (slot, num_slots) and
            (if num_dma_id > 0 then
               (for all i in 1 .. num_dma_id =>
