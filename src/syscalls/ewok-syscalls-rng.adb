@@ -20,6 +20,8 @@
 --
 --
 
+with system;
+
 with ewok.tasks;        use ewok.tasks;
 with ewok.sanitize;
 with ewok.perm;
@@ -29,7 +31,7 @@ with types.c;           use type types.c.t_retval;
 
 
 package body ewok.syscalls.rng
-   with spark_mode => off
+   with spark_mode => on
 is
 
    procedure svc_get_random
@@ -40,20 +42,24 @@ is
       length      : unsigned_16
          with import, address => params(2)'address;
 
-      buffer      : unsigned_8_array (1 .. unsigned_32 (length))
-         with import, address => to_address (params(1));
+      buffer_addr : constant system.address := to_address (params(1));
+      buffer_len  : constant unsigned_32    := unsigned_32 (length);
+      buffer      : unsigned_8_array (1 .. buffer_len)
+         with import, address => buffer_addr;
 
       ok : boolean;
    begin
 
       -- Forbidden after end of task initialization
       if not is_init_done (caller_id) then
-         goto ret_denied;
+         set_return_value (caller_id, mode, SYS_E_DENIED);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Does buffer'address is in the caller address space ?
       if not ewok.sanitize.is_range_in_data_slot
-                 (to_system_address (buffer'address),
+                 (to_system_address (buffer_addr),
                   types.to_unsigned_32(length),
                   caller_id,
                   mode)
@@ -61,13 +67,17 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": svc_get_random(): 'value' parameter not in caller space"));
-         goto ret_inval;
+         set_return_value (caller_id, mode, SYS_E_INVAL);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Size is arbitrary limited to 16 bytes to avoid exhausting the entropy pool
       -- FIXME - is that check really correct?
       if length > 16 then
-         goto ret_inval;
+         set_return_value (caller_id, mode, SYS_E_INVAL);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Is the task allowed to use the RNG?
@@ -77,7 +87,9 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": svc_get_random(): permission not granted"));
-         goto ret_denied;
+         set_return_value (caller_id, mode, SYS_E_DENIED);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       -- Calling the RNG which handle the potential random source errors (case
@@ -94,27 +106,13 @@ is
          pragma DEBUG (debug.log (debug.ERROR,
             ewok.tasks.tasks_list(caller_id).name
             & ": svc_get_random(): weak seed"));
-         goto ret_busy;
+         set_return_value (caller_id, mode, SYS_E_BUSY);
+         ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
+         return;
       end if;
 
       set_return_value (caller_id, mode, SYS_E_DONE);
       ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_inval>>
-      set_return_value (caller_id, mode, SYS_E_INVAL);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_busy>>
-      set_return_value (caller_id, mode, SYS_E_BUSY);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
-
-   <<ret_denied>>
-      set_return_value (caller_id, mode, SYS_E_DENIED);
-      ewok.tasks.set_state (caller_id, mode, TASK_STATE_RUNNABLE);
-      return;
 
    end svc_get_random;
 

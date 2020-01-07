@@ -27,8 +27,6 @@ package body soc.rng
    with spark_mode => on
 is
 
-   last_random : unsigned_32;
-
    procedure init
      (success : out boolean)
    is

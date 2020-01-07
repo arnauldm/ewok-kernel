@@ -24,7 +24,7 @@ with ewok.debug;
 with soc.rng;
 
 package body ewok.rng
-   with spark_mode => off
+   with spark_mode => on
 is
 
 
@@ -35,6 +35,7 @@ is
       rand        : unsigned_32;
       rand_bytes  : unsigned_8_array (1 .. 4)
          with
+            import,
             address  => rand'address,
             size     => 4 * byte'size;
 
@@ -43,6 +44,7 @@ is
    begin
 
       index := tab'first;
+
       while index < tab'last loop
 
          soc.rng.random (rand, ok);
@@ -56,9 +58,11 @@ is
             tab(index .. index + 3) := rand_bytes;
          else
             tab(index .. tab'last)  := rand_bytes(1 .. tab'last - index + 1);
+            exit;
          end if;
 
          index := index + 4;
+         pragma loop_invariant (index >= tab'first);
 
       end loop;
 

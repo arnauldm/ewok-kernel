@@ -105,4 +105,7 @@ is
      (rand     : out unsigned_32;
       success  : out boolean);
 
+   --private
+   last_random : unsigned_32;
+
 end soc.rng;

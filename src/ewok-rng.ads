@@ -26,7 +26,9 @@ is
 
    procedure random_array
      (tab      : out unsigned_8_array;
-      success  : out boolean);
+      success  : out boolean)
+   with
+      pre => tab'last <= unsigned_32'last - 4;
 
    procedure random
      (rand     : out unsigned_32;

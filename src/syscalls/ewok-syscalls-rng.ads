@@ -22,6 +22,7 @@
 
 with ewok.tasks_shared; use ewok.tasks_shared;
 with ewok.tasks;
+with soc.rng;
 with applications;
 
 
@@ -37,7 +38,11 @@ is
       params      : in out t_parameters;
       mode        : in  ewok.tasks_shared.t_task_mode)
    with
-      global => (in_out => ewok.tasks.tasks_list),
-      pre => caller_id in applications.t_real_task_id;
+      pre => caller_id in applications.t_real_task_id,
+      global =>
+        (in_out =>
+           (ewok.tasks.tasks_list,
+            soc.rng.rng,
+            soc.rng.last_random));
 
 end ewok.syscalls.rng;
