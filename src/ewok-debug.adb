@@ -29,6 +29,7 @@ with ewok.gpio;
 
 with soc.gpio;
 with soc.usart;            use soc.usart;
+with soc.usart.interfaces; use soc.usart.interfaces;
 with soc.rcc;
 with soc.devmap;
 
@@ -138,7 +139,7 @@ is
       end case;
 
       soc.usart.interfaces.configure
-        (kernel_usart_id, 115_200, DATA_9BITS, PARITY_ODD, STOP_1, ok);
+        (kernel_usart_id, 115_200, DATA_8BITS, PARITY_BIT_NONE, STOP_1, ok);
       if not ok then
          raise program_error;
       end if;

@@ -30,7 +30,7 @@ is
      (usart_id : in  t_usart_id;
       baudrate : in  unsigned_32;
       data_len : in  t_data_len;
-      parity   : in  t_parity;
+      parity   : in  t_parity_bit;
       stop     : in  t_stop_bits;
       success  : out boolean)
    is
@@ -71,8 +71,13 @@ is
          usart.CR1.M      := data_len;
          usart.CR2.STOP   := stop;
 
-         usart.CR1.PCE := true;    -- Parity control enable
-         usart.CR1.PS  := parity;
+         case parity is
+            when PARITY_BIT_NONE => usart.CR1.PCE := false;
+            when PARITY_BIT_EVEN => usart.CR1.PS  := PARITY_EVEN;
+                                    usart.CR1.PCE := true;
+            when PARITY_BIT_ODD  => usart.CR1.PS  := PARITY_ODD;
+                                    usart.CR1.PCE := true;
+         end case;
 
          -- No flow control
          usart.CR3.RTSE := false;
