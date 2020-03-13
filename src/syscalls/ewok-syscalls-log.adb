@@ -49,8 +49,9 @@ is
          return;
       end if;
 
-      if not ewok.sanitize.is_word_in_data_slot
+      if not ewok.sanitize.is_range_in_data_slot
               (to_system_address (msg_address),
+               unsigned_32 (size),
                caller_id,
                mode)
       then
