@@ -32,8 +32,8 @@ is
    -- SPARK ghost functions and procedures
    -----------------------------------------------------
 
-   function init_is_done return boolean;
-
+   -- Specify the package state. Set to true by init().
+   init_done : boolean := false;
 
    function check_32bits_overflow return boolean
       with ghost;
@@ -43,20 +43,26 @@ is
    -- (Cf. ARMv7-M Arch. Ref. Manual, C1.8, p.779) --
    --------------------------------------------------
 
+   -- Initialize the DWT module
+   procedure init
+      with
+         pre   => not init_done,
+         post  => init_done;
+
    -- Reset the DWT-based timer
    procedure reset_timer
       with
-         pre      => not init_is_done;
+         pre   => not init_done;
 
    -- Start the DWT timer. The register is counting the number of CPU cycles
    procedure start_timer
       with
-         pre      => not init_is_done;
+         pre   => not init_done;
 
    -- Stop the DWT timer
    procedure stop_timer
       with
-        pre       => init_is_done;
+         pre   => init_done;
 
    -- Periodically check the DWT CYCCNT register for overflow. This permit
    -- to detect each time an overflow happends and increment the
@@ -68,32 +74,27 @@ is
          --pre => check_32bits_overflow,
          inline_always;
 
-   -- Initialize the DWT module
-   procedure init
-      with
-         pre      => not init_is_done;
-
    -- Get the DWT timer (without overflow support, keep a 32bit value)
-   procedure get_cycles_32(cycles : out unsigned_32)
+   procedure get_cycles_32 (cycles : out unsigned_32)
       with
          inline,
-         pre      => init_is_done;
+         pre   => init_done;
 
    -- Get the DWT timer with overflow support. permits linear measurement
    -- on 64 bits cycles time window (approx. 1270857 days)
    procedure get_cycles (cycles : out unsigned_64)
       with
-         pre      => init_is_done;
+         pre   => init_done;
 
    procedure get_microseconds (micros : out unsigned_64)
       with
          inline,
-         pre      => init_is_done;
+         pre   => init_done;
 
    procedure get_milliseconds (milli : out unsigned_64)
       with
          inline,
-         pre      => init_is_done;
+         pre   => init_done;
 
 private
 
@@ -165,9 +166,6 @@ private
          import,
          volatile,
          address => system'to_address (16#E000_1004#);
-
-   -- Specify the package state. Set to true by init().
-   init_done : boolean := false;
 
    --
    -- DWT CYCCNT register overflow counting
