@@ -270,15 +270,15 @@ is
 
 
    procedure set_baudrate
-     (usart    : in  t_USART_peripheral_access;
-      baudrate : in  unsigned_32);
+     (usart    : in     t_USART_peripheral_access;
+      baudrate : in     unsigned_32);
 
    procedure transmit
-     (usart : in  t_USART_peripheral_access;
-      data  : in  t_USART_DR);
+     (usart : in     t_USART_peripheral_access;
+      data  : in     bits_9);
 
    procedure receive
-     (usart : in  t_USART_peripheral_access;
-      data  : out t_USART_DR);
+     (usart : in     t_USART_peripheral_access;
+      data  :    out bits_9);
 
 end soc.usart;

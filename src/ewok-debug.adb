@@ -29,13 +29,14 @@ with ewok.gpio;
 
 with soc.gpio;
 with soc.usart;            use soc.usart;
-with soc.usart.interfaces;
+with soc.usart.interfaces; use soc.usart.interfaces;
 with soc.rcc;
 with soc.devmap;
 
 #if CONFIG_KERNEL_PANIC_WIPE
 with soc;
 with soc.layout; use soc.layout;
+with ewok.ipc;
 #end if;
 
 #if not CONFIG_KERNEL_PANIC_FREEZE
@@ -48,8 +49,8 @@ package body ewok.debug
    with spark_mode => off
 is
 
-   kernel_usart_id   : unsigned_8;
    TX_pin_config     : aliased ewok.exported.gpios.t_gpio_config;
+   kernel_usart_id   : soc.usart.interfaces.t_usart_id;
 
    USART1_TX_pin_config : constant ewok.exported.gpios.t_gpio_config :=
      (settings => ewok.exported.gpios.t_gpio_settings'(others => true),
@@ -110,7 +111,7 @@ is
 
 
    procedure init
-     (usart : in unsigned_8)
+     (usart : in soc.usart.interfaces.t_usart_id)
    is
       ok             : boolean;
    begin
@@ -118,14 +119,12 @@ is
       kernel_usart_id := usart;
 
       case kernel_usart_id is
-         when 1 =>
+         when soc.usart.interfaces.ID_USART1 =>
             TX_pin_config  := USART1_TX_pin_config;
-         when 4 =>
+         when soc.usart.interfaces.ID_UART4 =>
             TX_pin_config  := USART4_TX_pin_config;
-         when 6 =>
+         when soc.usart.interfaces.ID_USART6 =>
             TX_pin_config  := USART6_TX_pin_config;
-         when others =>
-            raise program_error;
       end case;
 
       ewok.gpio.register (ID_KERNEL, ID_DEV_UNUSED, TX_pin_config'access, ok);
@@ -136,24 +135,23 @@ is
       ewok.gpio.config (TX_pin_config'access);
 
       case kernel_usart_id is
-         when 1 =>
+         when soc.usart.interfaces.ID_USART1 =>
             soc.rcc.enable_clock (soc.devmap.USART1);
-         when 4 =>
+         when soc.usart.interfaces.ID_UART4  =>
             soc.rcc.enable_clock (soc.devmap.UART4);
-         when 6 =>
+         when soc.usart.interfaces.ID_USART6 =>
             soc.rcc.enable_clock (soc.devmap.USART6);
-         when others =>
-            raise program_error;
       end case;
 
       soc.usart.interfaces.configure
-        (kernel_usart_id, 115_200, DATA_9BITS, PARITY_ODD, STOP_1, ok);
+        (kernel_usart_id, 115_200, DATA_8BITS, PARITY_BIT_NONE, STOP_1, ok);
       if not ok then
          raise program_error;
       end if;
 
       log (INFO,
-         "EwoK: USART" & unsigned_8'image (kernel_usart_id) & " initialized");
+         "EwoK: USART" & soc.usart.interfaces.t_usart_id'image (usart) &
+         " initialized");
       newline;
 
    end init;
@@ -227,15 +225,19 @@ is
 #end if;
 
 #if CONFIG_KERNEL_PANIC_WIPE
+      -- Wiping the user applications in RAM before reseting
       declare
+         -- Note: Kernel data and bss can't be cleared because they are in use
          sram : array (0 .. soc.layout.USER_RAM_SIZE) of types.byte
             with address => to_address(USER_RAM_BASE);
       begin
-         -- Wiping the user applications in RAM before reseting. Kernel data
-         -- and bss are not cleared because the are in use and there should
-         -- be no sensible content in kernel data (secrets are hold by user tasks).
-         -- TODO: Clearing IPC content
+
+         -- Clearing IPC content
+         ewok.ipc.init_endpoints;
+
+         -- Clearing SRAM used by user apps
          sram := (others => 0);
+
          m4.scb.reset;
       end;
 #end if;

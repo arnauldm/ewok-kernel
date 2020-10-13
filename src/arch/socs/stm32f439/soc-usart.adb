@@ -55,26 +55,26 @@ is
 
 
    procedure transmit
-     (usart : in  t_USART_peripheral_access;
-      data  : in  t_USART_DR)
+     (usart : in     t_USART_peripheral_access;
+      data  : in     bits_9)
    is
    begin
       loop
          exit when usart.all.SR.TXE;
       end loop;
-      usart.all.DR := data;
+      usart.all.DR := t_USART_DR (data);
    end transmit;
 
 
    procedure receive
-     (usart : in  t_USART_peripheral_access;
-      data  : out t_USART_DR)
+     (usart : in     t_USART_peripheral_access;
+      data  :    out bits_9)
    is
    begin
       loop
          exit when usart.all.SR.RXNE;
       end loop;
-      data := usart.all.DR;
+      data := bits_9 (usart.all.DR);
    end receive;
 
 
