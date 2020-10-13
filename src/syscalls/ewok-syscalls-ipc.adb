@@ -493,8 +493,8 @@ is
 
          ewok.ipc.get_endpoint (ep_id, ok);
          if not ok then
-            -- FIXME
-            debug.panic ("send(): EndPoint starvation !O_+");
+            -- FIXME Should raise ENDPOINTS_POOL_SIZE
+            debug.panic ("IPC EndPoint starvation !O_+");
          end if;
 
          TSK.tasks_list(caller_id).ipc_endpoint_id(id_receiver) := ep_id;

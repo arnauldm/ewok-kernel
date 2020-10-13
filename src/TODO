@@ -53,8 +53,5 @@ ewok-devices.ads:
 ewok-devices.adb:
 	FIXME initialize registered_device(dev_id).udev with 0 values
 
-ewok-debug.adb:
-	TODO: Clearing IPC content
-
 generated/config-applications.ads:
 	FIXME: this type can be added to the types.ads package after the

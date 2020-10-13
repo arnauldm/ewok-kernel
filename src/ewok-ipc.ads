@@ -33,14 +33,15 @@ is
 
    MAX_IPC_MSG_SIZE     : constant := 128;
 
-   type t_endpoint_state is (
-      -- IPC endpoint is unused
+   type t_endpoint_state is
+     (-- IPC endpoint is unused
       FREE,
       -- IPC endpoint is used and is ready for message passing
       READY,
       -- send() block until the receiver read the message
       WAIT_FOR_RECEIVER);
 
+   -- TODO: should extend t_real_task_id to avoid using non-existant ID
    type t_extended_task_id is
      (ID_UNUSED,
       ID_APP1,
@@ -82,7 +83,7 @@ is
    -- Global pool of IPC EndPoints
    --
 
-   ENDPOINTS_POOL_SIZE  : constant := 10;
+   ENDPOINTS_POOL_SIZE  : constant := $CONFIG_KERNEL_IPC_POOL_SIZE;
    ID_ENDPOINT_UNUSED   : constant := 0;
 
    type t_extended_endpoint_id is

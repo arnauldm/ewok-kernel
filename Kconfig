@@ -214,6 +214,13 @@ config KERNEL_SOFTIRQ_QUEUE_DEPTH
   if there interrupt bursts arrise, generating queue overflow.
   The kernel consider a queue overflow as a critical event and panic.
 
+config KERNEL_IPC_POOL_SIZE
+  int "Kernel IPC endpoints available"
+  range 0 128
+  default 10
+  ---help---
+  Specify the maximum number of available IPC endpoints.
+
 
 
 config DBGLEVEL

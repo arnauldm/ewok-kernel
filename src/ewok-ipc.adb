@@ -69,9 +69,7 @@ is
       ep.to    := ewok.ipc.ID_UNUSED;
       ep.state := FREE;
       ep.size  := 0;
-      for i in ep.data'range loop
-         ep.data(i)  := 0;
-      end loop;
+      ep.data  := (others => 0);
    end init_endpoint;
 
 
@@ -92,7 +90,7 @@ is
 
       for i in ipc_endpoints'range loop
          if ipc_endpoints(i).state = FREE then
-            ipc_endpoints(i).state  := READY;
+            ipc_endpoints(i).state := READY;
             endpoint := i;
             success  := true;
             return;
